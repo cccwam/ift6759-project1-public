@@ -1,5 +1,5 @@
 # Summary:
-#   Evaluates the predictor
+#   Trains the predictor
 
 
 def main():

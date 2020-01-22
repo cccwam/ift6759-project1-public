@@ -13,10 +13,10 @@
 #   2. Perform necessary modifications to the SBATCH parameters
 #      at the top of this script.
 #   3. Configure LOCAL_GIT_REPO_FOLDER and COMMAND below.
-#   4. Execution: cd ~/ && sbatch sbatch_template.sh
+#   4. Execution: sbatch ~/sbatch_template.sh
 
 LOCAL_GIT_REPO_FOLDER="~/ift6759-project1"
-COMMAND="python trainer.py"
+COMMAND="python train.py"
 
 shopt -s extglob # enables cp to copy with exclusions !(...)
 cp !(venv) -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/

@@ -5,10 +5,10 @@ at University of Montreal.
 
 ## Notable files
 
-* trainer.py
-  * Used to train the predictor
-* evaluator.py
-  * Used to evaluate the predictor
+* train.py
+  * Used to train the predictor.
+* evaluate.py
+  * Used to evaluate the predictor.
 * tools/
   * Helper scripts to facilitate development.
 * requirements.txt

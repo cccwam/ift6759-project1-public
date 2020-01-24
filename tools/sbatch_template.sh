@@ -8,24 +8,23 @@
 # Summary:
 #   A template for launching a batch job to execute code from
 #   this repository on a k80 gpu node.
-# Setup and example usage:
-#   1. Copy this file to your helios' home folder ~/
-#   2. Perform necessary modifications to the SBATCH parameters
+# Pre-requisites:
+#   1. Clone this git repository to your helios home folder.
+#   2. Copy this file to your helios' home folder ~/
+#   3. Perform necessary modifications to the SBATCH parameters
 #      at the top of this script.
-#   3. Configure LOCAL_GIT_REPO_FOLDER and COMMAND below.
-#   4. Execution: sbatch ~/sbatch_template.sh
+#   4. Edit the following uppercase variables to suit your needs.
+# Example usage:
+#   sbatch ~/sbatch_template.sh
 
-LOCAL_GIT_REPO_FOLDER="~/ift6759-project1"
+LOCAL_GIT_REPO_FOLDER=~/ift6759-project1
+VENV_FOLDER=venv
 COMMAND="python train.py"
 
-shopt -s extglob # enables cp to copy with exclusions !(...)
-cp !(venv) -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/
-shopt -u extglob
-
-module load python/3.7
-virtualenv --no-download $SLURM_TMPDIR/venv
-source $SLURM_TMPDIR/venv/bin/activate
-pip install --no-index --upgrade pip
-pip install -r requirements.txt
-
-eval "$COMMAND"
+cd $SLURM_TMPDIR/
+cp -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/
+module load python/3.7.4
+virtualenv --no-download $SLURM_TMPDIR/$VENV_FOLDER
+source $SLURM_TMPDIR/$VENV_FOLDER/bin/activate
+pip install --no-index --upgrade pip -r requirements.txt
+$COMMAND

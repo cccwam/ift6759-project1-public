@@ -1,6 +1,8 @@
 #!/bin/bash
+# Example usage:
+#   . tools/validate_repo.sh
 # Summary:
 #   flake8 is used to enforce the pep8 standard
 #   pytest is used to run unit tests
-flake8 --exclude=venv* --statistics
+flake8 --statistics --config .flake8
 pytest -v --cov=tests/

@@ -52,33 +52,10 @@ def prepare_dataloader(
         by ``target_sequences``.
     """
     ################################## MODIFY BELOW ##################################
-    # WE ARE PROVIDING YOU WITH A DUMMY DATA GENERATOR FOR DEMONSTRATION PURPOSES.
-    # MODIFY EVERYTHINGIN IN THIS BLOCK AS YOU SEE FIT
 
-    def dummy_data_generator():
-        """
-        Generate dummy data for the model, only for example purposes.
-        """
-        batch_size = 32
-        image_dim = (64, 64)
-        n_channels = 5
-        output_seq_len = 4
-
-        for i in range(0, len(target_datetimes), batch_size):
-            batch_of_datetimes = target_datetimes[i:i+batch_size]
-            samples = tf.random.uniform(shape=(
-                len(batch_of_datetimes), image_dim[0], image_dim[1], n_channels
-            ))
-            targets = tf.zeros(shape=(
-                len(batch_of_datetimes), output_seq_len
-            ))
-            # Remember that you do not have access to the targets.
-            # Your dataloader should handle this accordingly.
-            yield samples, targets
-
-    data_loader = tf.data.Dataset.from_generator(
-        dummy_data_generator, (tf.float32, tf.float32)
-    )
+    import data_loaders
+    data_loader = getattr(data_loaders, config['data_loader_name'])(
+        dataframe, target_datetimes, stations, target_time_offsets, config)
 
     ################################### MODIFY ABOVE ##################################
 
@@ -107,19 +84,8 @@ def prepare_model(
 
     ################################### MODIFY BELOW ##################################
 
-    class DummyModel(tf.keras.Model):
-
-      def __init__(self, target_time_offsets):
-        super(DummyModel, self).__init__()
-        self.flatten = tf.keras.layers.Flatten()
-        self.dense1 = tf.keras.layers.Dense(32, activation=tf.nn.relu)
-        self.dense2 = tf.keras.layers.Dense(len(target_time_offsets), activation=tf.nn.softmax)
-
-      def call(self, inputs):
-        x = self.dense1(self.flatten(inputs))
-        return self.dense2(x)
-
-    model = DummyModel(target_time_offsets)
+    import models
+    model = getattr(models, config['model_name'])(stations, target_time_offsets, config)
 
     ################################### MODIFY ABOVE ##################################
 
@@ -162,17 +128,8 @@ def generate_all_predictions(
         # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
         stations = {station_name: target_stations[station_name]}
         print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
-
-        import data_loaders
-        data_loader = getattr(data_loaders, user_config['data_loader_name'])(
-            dataframe, target_datetimes, stations, target_time_offsets, user_config)
-
-        #data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config)
-
-        import models
-        model = getattr(models, user_config['model_name'])(stations, target_time_offsets, user_config)
-
-        #model = prepare_model(stations, target_time_offsets, user_config)
+        data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config)
+        model = prepare_model(stations, target_time_offsets, user_config)
         station_preds = generate_predictions(data_loader, model, pred_count=len(target_datetimes))
         assert len(station_preds) == len(target_datetimes), "number of predictions mismatch with requested datetimes"
         predictions.append(station_preds)
@@ -245,23 +202,12 @@ def main(
     assert os.path.isfile(dataframe_path), f"invalid dataframe path: {dataframe_path}"
     dataframe = pd.read_pickle(dataframe_path)
 
-    # temporary hack for python 3.6 instead of datetime.datetime.fromisoformat
-    # to restore when python 3.7 properly setup...
-    def fromisoformat(a):
-        d_a = a.split('T')
-        d_a1 = d_a[0].split('-')
-        if len(d_a) > 1:
-            d_a2 = d_a[1].split(':')
-            return datetime.datetime(int(d_a1[0]), int(d_a1[1]), int(d_a1[2]),
-                                     int(d_a2[0]), int(d_a2[1]), int(d_a2[2]))
-        return datetime.datetime(int(d_a1[0]),int(d_a1[1]),int(d_a1[2]))
-
     if "start_bound" in admin_config:
-        dataframe = dataframe[dataframe.index >= fromisoformat(admin_config["start_bound"])]
+        dataframe = dataframe[dataframe.index >= datetime.datetime.fromisoformat(admin_config["start_bound"])]
     if "end_bound" in admin_config:
-        dataframe = dataframe[dataframe.index < fromisoformat(admin_config["end_bound"])]
+        dataframe = dataframe[dataframe.index < datetime.datetime.fromisoformat(admin_config["end_bound"])]
 
-    target_datetimes = [fromisoformat(d) for d in admin_config["target_datetimes"]]
+    target_datetimes = [datetime.datetime.fromisoformat(d) for d in admin_config["target_datetimes"]]
     assert target_datetimes and all([d in dataframe.index for d in target_datetimes])
     target_stations = admin_config["stations"]
     target_time_offsets = [pd.Timedelta(d).to_pytimedelta() for d in admin_config["target_time_offsets"]]
@@ -292,7 +238,6 @@ def main(
     gt = gt.reshape((len(target_stations), len(target_datetimes), len(target_time_offsets)))
     day = parse_nighttime_flags(target_stations, target_datetimes, target_time_offsets, dataframe)
     day = day.reshape((len(target_stations), len(target_datetimes), len(target_time_offsets)))
-
 
     squared_errors = np.square(predictions - gt)
     stations_rmse = np.sqrt(np.nanmean(squared_errors, axis=(1, 2)))

@@ -13,3 +13,7 @@ at University of Montreal.
   * Helper scripts to facilitate development.
 * requirements.txt
   * All the requirements necessary to run the code.
+
+## Evaluator.py instructions
+
+``python evaluator.py pred_output.txt project1_cfg_name.json --user_cfg_path=usr_cfg.json --stats_output_path=stat_output.txt``

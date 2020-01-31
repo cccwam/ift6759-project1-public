@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
+
 def baselines(
         dataframe: pd.DataFrame,
         target_datetimes: typing.List[datetime.datetime],
@@ -33,43 +34,40 @@ def baselines(
         by ``target_sequences``.
     """
 
-    def dummy_data_generator():
-        """
-        Generate dummy data for the model, only for example purposes.
-        """
-        batch_size = 32
+    def baseline_generator():
+        """Baseline generator with time/lat/lon/elev."""
+
+        batch_size = 256
         output_seq_len = 4
         if len(list(stations.keys())) > 1:
             raise NotImplementedError()
         station_name = list(stations.keys())[0]
 
-
         for i in range(0, len(target_datetimes), batch_size):
             batch_of_datetimes = target_datetimes[i:i + batch_size]
-            samples_np = np.zeros([len(batch_of_datetimes), 8], dtype=np.int32)
+            samples_np = np.zeros([len(batch_of_datetimes), 8])
             targets_np = np.zeros([len(batch_of_datetimes), output_seq_len])
 
-            for j, datetime in enumerate(batch_of_datetimes):
-                samples_np[j, 0] = datetime.year
-                samples_np[j, 1] = datetime.month
-                samples_np[j, 2] = datetime.day
-                samples_np[j, 3] = datetime.hour
-                samples_np[j, 4] = datetime.minute
-                samples_np[j, 5] = stations[station_name][0]*1000
-                samples_np[j, 6] = stations[station_name][1]*1000
+            for j, dt in enumerate(batch_of_datetimes):
+                samples_np[j, 0] = dt.year
+                samples_np[j, 1] = dt.month
+                samples_np[j, 2] = dt.day
+                samples_np[j, 3] = dt.hour
+                samples_np[j, 4] = dt.minute
+                samples_np[j, 5] = stations[station_name][0]
+                samples_np[j, 6] = stations[station_name][1]
                 samples_np[j, 7] = stations[station_name][2]
-                for l in range(output_seq_len):
-                    k = dataframe.index.get_loc(datetime + target_time_offsets[l])
-                    targets_np[j, l] = dataframe[f"{station_name}_GHI"][k]
+                for m in range(output_seq_len):
+                    k = dataframe.index.get_loc(dt + target_time_offsets[m])
+                    targets_np[j, m] = dataframe[f"{station_name}_GHI"][k]
 
             samples = tf.convert_to_tensor(samples_np, dtype=tf.int32)
             targets = tf.convert_to_tensor(targets_np)
 
-
             yield samples, targets
 
     data_loader = tf.data.Dataset.from_generator(
-        dummy_data_generator, (tf.float32, tf.float32)
+        baseline_generator, (tf.float32, tf.float32)
     )
 
     return data_loader

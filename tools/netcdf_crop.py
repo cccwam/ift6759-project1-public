@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import pickle
@@ -7,10 +8,10 @@ import numpy as np
 import netCDF4
 
 # Script for preprocessing crop around stations
-# Usage: python netcdf_crop.py cfg_file.json [crop_size]
+# Usage: python netcdf_crop.py cfg_file.json [crop_size] [path_output]
 
 
-def netcdf_preloader(cfg_file, crop_size=50):
+def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
     dc = crop_size / 2
     with open(cfg_file, 'r') as f:
         cfg = json.loads(f.read())
@@ -29,7 +30,7 @@ def netcdf_preloader(cfg_file, crop_size=50):
         next_dt = all_dt[-1] + ddt
 
     for station, coord in cfg['stations'].items():
-        nc = netCDF4.Dataset(f'preloader_{station}.nc', 'w')
+        nc = netCDF4.Dataset(os.path.join(path_output, f'preloader_{station}.nc'), 'w')
         nc.createDimension('time', len(all_dt))
         nc.createDimension('lat', crop_size)
         nc.createDimension('lon', crop_size)
@@ -45,7 +46,7 @@ def netcdf_preloader(cfg_file, crop_size=50):
             k = df.index.get_loc(dt)
             try:
                 nc_loop = netCDF4.Dataset(df['ncdf_path'][k], 'r')
-            except:
+            except OSError:
                 continue
             if init:
                 lat = nc_loop['lat']
@@ -68,4 +69,8 @@ if __name__ == '__main__':
         crop = sys.argv[2]
     else:
         crop = 50
-    netcdf_preloader(sys.argv[1], crop)
+    if len(sys.argv) > 3:
+        path_out = sys.argv[3]
+    else:
+        path_out = '.'
+    netcdf_preloader(sys.argv[1], crop, path_out)

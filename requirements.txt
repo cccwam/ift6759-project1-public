@@ -9,3 +9,5 @@ pytest-cov
 # Compute
 # =======
 tensorflow_gpu==2.0.0 # Keep fixed
+netCDF4==1.5.3
+tqdm==4.40.2

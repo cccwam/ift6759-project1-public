@@ -6,6 +6,7 @@ import datetime
 
 import numpy as np
 import netCDF4
+import tqdm
 
 # Script for preprocessing crop around stations
 # Usage: python netcdf_crop.py cfg_file.json [crop_size] [path_output]
@@ -19,9 +20,9 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
     with open(cfg['dataframe_path'], 'rb') as f:
         df = pickle.load(f)
 
-    dt0 = datetime.datetime(*cfg['start_bound'].split('-'))
+    dt0 = datetime.datetime(*list(map(int, cfg['start_bound'].split('-'))))
     ddt = datetime.timedelta(minutes=15)
-    dtf = datetime.datetime(*cfg['end_bound'].split('-'))
+    dtf = datetime.datetime(*list(map(int, cfg['end_bound'].split('-'))))
 
     all_dt = []
     next_dt = dt0
@@ -42,7 +43,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
                     chunksizes=(480, crop_size, crop_size)))
 
         init = True
-        for t, dt in enumerate(all_dt):
+        for t, dt in tqdm.tqdm(enumerate(all_dt)):
             k = df.index.get_loc(dt)
             try:
                 nc_loop = netCDF4.Dataset(df['ncdf_path'][k], 'r')
@@ -66,7 +67,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:
-        crop = sys.argv[2]
+        crop = int(sys.argv[2])
     else:
         crop = 50
     if len(sys.argv) > 3:

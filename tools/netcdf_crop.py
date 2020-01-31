@@ -1,9 +1,13 @@
+import sys
 import json
 import pickle
 import datetime
 
 import numpy as np
 import netCDF4
+
+# Script for preprocessing crop around stations
+# Usage: python netcdf_crop.py cfg_file.json [crop_size]
 
 
 def netcdf_preloader(cfg_file, crop_size=50):
@@ -57,3 +61,11 @@ def netcdf_preloader(cfg_file, crop_size=50):
             nc_loop.close()
 
         nc.close()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 2:
+        crop = sys.argv[2]
+    else:
+        crop = 50
+    netcdf_preloader(sys.argv[1], crop)

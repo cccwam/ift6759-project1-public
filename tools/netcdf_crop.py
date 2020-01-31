@@ -13,7 +13,7 @@ import tqdm
 
 
 def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
-    dc = crop_size / 2
+    dc = crop_size // 2
     with open(cfg_file, 'r') as f:
         cfg = json.loads(f.read())
 

@@ -24,6 +24,7 @@ COMMAND="python train.py"
 cd $SLURM_TMPDIR/
 cp -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/
 module load python/3.7.4
+module load hdf5-mpi/1.10.3
 virtualenv --no-download $SLURM_TMPDIR/$VENV_FOLDER
 source $SLURM_TMPDIR/$VENV_FOLDER/bin/activate
 pip install --no-index --upgrade pip -r requirements.txt

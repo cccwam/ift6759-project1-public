@@ -36,8 +36,7 @@ def helper_dummy_dataset(batch_size):
             for t in range(n_frames):
                 x_shift = x_start + direction_x * t
                 y_shift = y_start + direction_y * t
-                noisy_movies[i, t, x_shift - w: x_shift + w,
-                y_shift - w: y_shift + w, 0] += 1
+                noisy_movies[i, t, x_shift - w: x_shift + w, y_shift - w: y_shift + w, 0] += 1
 
                 # Make it more robust by adding noise.
                 # The idea is that if during inference,
@@ -46,10 +45,8 @@ def helper_dummy_dataset(batch_size):
                 # consider it as a pixel belonging to a square.
                 if np.random.randint(0, 2):
                     noise_f = (-1) ** np.random.randint(0, 2)
-                    noisy_movies[i, t,
-                    x_shift - w - 1: x_shift + w + 1,
-                    y_shift - w - 1: y_shift + w + 1,
-                    0] += noise_f * 0.1
+                    dl = w + 1
+                    noisy_movies[i, t, x_shift - dl: x_shift + dl, y_shift - dl: y_shift + dl, 0] += noise_f * 0.1
             labels += [[direction_x, direction_y, x_start, y_start]]
 
         # Cut to a 40x40 window

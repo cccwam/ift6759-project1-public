@@ -77,10 +77,10 @@ def train_test_model(dataset, model_builder, epochs, tensorboard_log_dir, hparam
 
 
 # Activate this for multi gpu
-# Use only a maximum of 8 GPUs
+# Use only a maximum of 4 GPUs
 nb_gpus = tf.test.gpu_device_name()
 
-mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(8, len(nb_gpus)))])
+mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, len(nb_gpus)))])
 print("------------")
 print('Number of available GPU devices: {}'.format(nb_gpus))
 print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))

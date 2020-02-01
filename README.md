@@ -7,7 +7,7 @@ at University of Montreal.
 
 * train.py
   * Used to train the predictor.
-* evaluate.py
+* evaluator.py
   * Used to evaluate the predictor.
 * tools/
   * Helper scripts to facilitate development.

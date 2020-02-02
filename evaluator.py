@@ -66,7 +66,7 @@ def prepare_dataloader(
 
     data_loader = import_from(
         config['data_loader']['definition']['module'],
-        config['data_loader']['definition']['package']
+        config['data_loader']['definition']['name']
     )(
         dataframe=dataframe,
         target_datetimes=target_datetimes,

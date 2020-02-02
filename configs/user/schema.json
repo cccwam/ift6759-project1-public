@@ -12,14 +12,14 @@
               "description": "The python module to load.",
               "type": "string"
             },
-            "package": {
-              "description": "The python package to load.",
+            "name": {
+              "description": "The python name to load.",
               "type": "string"
             }
           },
           "required": [
             "module",
-            "package"
+            "name"
           ]
         },
         "params": {
@@ -47,14 +47,14 @@
               "description": "The python module to load.",
               "type": "string"
             },
-            "package": {
-              "description": "The python package to load.",
+            "name": {
+              "description": "The python name to load.",
               "type": "string"
             }
           },
           "required": [
             "module",
-            "package"
+            "name"
           ]
         }
       },

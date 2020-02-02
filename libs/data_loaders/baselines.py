@@ -6,7 +6,7 @@ import pandas as pd
 import tensorflow as tf
 
 
-def baselines(
+def data_loader_v1(
         dataframe: pd.DataFrame,
         target_datetimes: typing.List[datetime.datetime],
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
@@ -66,8 +66,6 @@ def baselines(
 
             yield samples, targets
 
-    data_loader = tf.data.Dataset.from_generator(
+    return tf.data.Dataset.from_generator(
         baseline_generator, (tf.float32, tf.float32)
     )
-
-    return data_loader

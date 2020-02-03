@@ -31,10 +31,16 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
         next_dt = all_dt[-1] + ddt
 
     for station, coord in cfg['stations'].items():
-        nc = netCDF4.Dataset(os.path.join(path_output, f'preloader_{station}.nc'), 'w')
+        nc = netCDF4.Dataset(
+            os.path.join(path_output, f'preloader_{station}.nc'), 'w')
         nc.createDimension('time', len(all_dt))
         nc.createDimension('lat', crop_size)
         nc.createDimension('lon', crop_size)
+        time = nc.createVariable('time', 'f8', ('time',))
+        time.calendar = 'standard'
+        time.units = 'days since 1970-01-01 00:00:00'
+        lat = nc.createVariable('lat', 'f4', ('lat',))
+        lon = nc.createVariable('lon', 'f4', ('lon',))
         channels = []
         for c in [1, 2, 3, 4, 6]:
             channels.append(
@@ -50,11 +56,13 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
             except OSError:
                 continue
             if init:
-                lat = nc_loop['lat']
-                lon = nc_loop['lon']
-                lat_diff = np.abs(lat[:] - coord[0])
+                lat_loop = nc_loop['lat'][:]
+                lon_loop = nc_loop['lon'][:]
+                lat[:] = lat_loop
+                lon[:] = lon_loop
+                lat_diff = np.abs(lat_loop - coord[0])
                 i = np.where(lat_diff == lat_diff.min())[0][0]
-                lon_diff = np.abs(lon[:] - coord[1])
+                lon_diff = np.abs(lon_loop - coord[1])
                 j = np.where(lon_diff == lon_diff.min())[0][0]
                 init = False
             for d, c in enumerate([1, 2, 3, 4, 6]):

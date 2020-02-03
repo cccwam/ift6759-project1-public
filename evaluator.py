@@ -53,9 +53,27 @@ def prepare_dataloader(
     """
     ################################## MODIFY BELOW ##################################
 
-    import data_loaders
-    data_loader = getattr(data_loaders, config['data_loader_name'])(
-        dataframe, target_datetimes, stations, target_time_offsets, config)
+    from jsonschema import validate
+
+    def import_from(module, name):
+        module = __import__(module, fromlist=[name])
+        return getattr(module, name)
+
+    with open('configs/user/schema.json', 'r') as f:
+        schema_data = f.read()
+    user_schema = json.loads(schema_data)
+    validate(config, user_schema)
+
+    data_loader = import_from(
+        config['data_loader']['definition']['module'],
+        config['data_loader']['definition']['name']
+    )(
+        dataframe=dataframe,
+        target_datetimes=target_datetimes,
+        stations=stations,
+        target_time_offsets=target_time_offsets,
+        config=config
+    )
 
     ################################### MODIFY ABOVE ##################################
 
@@ -84,8 +102,31 @@ def prepare_model(
 
     ################################### MODIFY BELOW ##################################
 
-    import models
-    model = getattr(models, config['model_name'])(stations, target_time_offsets, config)
+    from os import path
+    from jsonschema import validate
+
+    with open('configs/user/schema.json', 'r') as f:
+        schema_data = f.read()
+    schema = json.loads(schema_data)
+    validate(config, schema)
+
+    model_path = config['model']['path']
+
+    if not model_path:
+        model_path = '../model/best_model.tf'
+
+    if not path.exists(model_path):
+        raise FileNotFoundError(f'Error: The file {model_path} does not exist.')
+
+    model = tf.keras.models.load_model(
+        model_path,
+        custom_objects=None,
+        compile=True
+    )(
+        stations=stations,
+        target_time_offsets=target_time_offsets,
+        config=config
+    )
 
     ################################### MODIFY ABOVE ##################################
 

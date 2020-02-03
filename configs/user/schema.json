@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "model": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "description": "The python module to load.",
+              "type": "string"
+            },
+            "name": {
+              "description": "The python name to load.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "module",
+            "name"
+          ]
+        },
+        "params": {
+          "type": "object",
+          "description": "The hyper-parameters to use for this model during training."
+        },
+        "path": {
+          "type": "string",
+          "description": "The path to the pre-saved tensorflow model to load during evaluation."
+        }
+      },
+      "required": [
+        "definition",
+        "params",
+        "path"
+      ]
+    },
+    "data_loader": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "description": "The python module to load.",
+              "type": "string"
+            },
+            "name": {
+              "description": "The python name to load.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "module",
+            "name"
+          ]
+        }
+      },
+      "required": [
+        "definition"
+      ]
+    }
+  },
+  "required": [
+    "model",
+    "data_loader"
+  ]
+}

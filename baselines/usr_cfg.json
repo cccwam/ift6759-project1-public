@@ -1,6 +1,0 @@
-{
-  "model_name": "ineichen_clear_sky",
-  "rmse_test_scale_factor": 1.25,
-  "data_loader_name": "baselines",
-  "dataframe_path": "/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl"
-}

@@ -49,7 +49,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
                     chunksizes=(480, crop_size, crop_size)))
 
         init = True
-        for t, dt in tqdm.tqdm(enumerate(all_dt)):
+        for t, dt in enumerate(tqdm.tqdm(all_dt)):
             k = df.index.get_loc(dt)
             try:
                 nc_loop = netCDF4.Dataset(df['ncdf_path'][k], 'r')

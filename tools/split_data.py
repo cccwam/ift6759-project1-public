@@ -3,12 +3,14 @@ import sys
 import pickle
 import json
 import random
-import datetime
+from datetime import timedelta, date, datetime
+
+import numpy as np
 
 # Script for generating config files for training/validation/test split
 # Usage: python split_data.py [path_to_catalog.pkl] [cfg_name_{0}.json]
 
-default_catalog = '/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl'
+default_catalog_path = '/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl'
 
 cfg_template = {
   "stations": {
@@ -29,6 +31,11 @@ cfg_template = {
 }
 
 
+def date_range(start_date, end_date):
+    for day_i in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(day_i)
+
+
 def write_cfg_file(json_file, params):
     """Write parameters to config json file.
 
@@ -45,51 +52,30 @@ def write_cfg_file(json_file, params):
 
 
 def lightweight_year_split(
-        df, train_year_ini=2010, train_year_fin=2013,
-        val_year_ini=2014, val_year_fin=2014, test_year_ini=2015,
-        test_year_fin=2015, rseed=987):
-    """Lightweight train / val / test split based on years.
+        years_splits=(2010, 2014, 2015, 2016), seed=987):
+    random.seed(seed)
+    resulting_splits = []
 
-    :param df: pandas dataframe of catalog
-    :param train_year_ini: int, initial training year
-    :param train_year_fin: int, final training year
-    :param val_year_ini: int, initial validation year
-    :param val_year_fin: int, final validation year
-    :param test_year_ini: int, initial test year
-    :param test_year_fin: int, final test year
-    :param rseed: int, random seed
-    :return: tuple (train, val, test) of list of target datetimes
+    for i in range(len(years_splits)-1):
+        year_start = date(years_splits[i], 1, 1)
+        year_end = date(years_splits[i+1], 1, 1)
+        current_samples = []
+        for current_day in date_range(year_start, year_end):
+            current_samples.append(
+                datetime(
+                    year=current_day.year,
+                    month=current_day.month,
+                    day=current_day.day,
+                    hour=random.randint(0, 23),
+                    minute=random.choice([0, 15, 30, 45])
+                ).strftime('%Y-%m-%dT%H:%M:%S')
+            )
+        resulting_splits.append(current_samples)
 
-    This will extract exactly one data point from every day at a random
-    hour and minute (00, 15, 30 or 45).
-
-    """
-
-    random.seed(rseed)
-    time_split = ([], [], [])
-    for i in range(3):
-        if i == 0:
-            year_ini = train_year_ini
-            year_fin = train_year_fin
-        elif i == 1:
-            year_ini = val_year_ini
-            year_fin = val_year_fin
-        else:
-            year_ini = test_year_ini
-            year_fin = test_year_fin
-        for year in range(year_ini, year_fin + 1):
-            used_days = []
-            for ts in df.index:
-                if ts.year == year and (ts.month, ts.day) not in used_days:
-                    hour = random.randint(0, 23)
-                    minute = random.choice([0, 15, 30, 45])
-                    dt = datetime.datetime(ts.year, ts.month, ts.day, hour, minute)
-                    time_split[i].append(dt.strftime('%Y-%m-%dT%H:%M:%S'))
-                    used_days.append((ts.month, ts.day))
-    return time_split
+    return np.array(resulting_splits)
 
 
-def generate_params(catalog_file=default_catalog, method='lightweight_year_split', **args):
+def generate_params(catalog_file=default_catalog_path, method='lightweight_year_split', **args):
     """Generate parameters for config file based on a given method
 
     :param catalog_file: path to pickle catalog file.
@@ -101,7 +87,8 @@ def generate_params(catalog_file=default_catalog, method='lightweight_year_split
 
     with open(catalog_file, 'rb') as f:
         df = pickle.load(f)
-    target_datetimes_split = globals()[method](df, **args)
+    # TODO change to a more elegant way of selecting method
+    target_datetimes_split = globals()[method](**args)
     params = []
     for i in range(3):
         if target_datetimes_split[i] is None:
@@ -121,7 +108,7 @@ if __name__ == '__main__':
     if (len(sys.argv) > 1) and os.path.isfile(sys.argv[1]):
         catalog = sys.argv[1]
     else:
-        catalog = default_catalog
+        catalog = default_catalog_path
     if len(sys.argv) > 2:
         cfg_name = sys.argv[2]
     else:

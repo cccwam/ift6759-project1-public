@@ -58,12 +58,12 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
             if init:
                 lat_loop = nc_loop['lat'][:]
                 lon_loop = nc_loop['lon'][:]
-                lat[:] = lat_loop
-                lon[:] = lon_loop
                 lat_diff = np.abs(lat_loop - coord[0])
                 i = np.where(lat_diff == lat_diff.min())[0][0]
                 lon_diff = np.abs(lon_loop - coord[1])
                 j = np.where(lon_diff == lon_diff.min())[0][0]
+                lat[:] = lat_loop[i - dc:i + dc]
+                lon[:] = lon_loop[j - dc:j + dc]
                 init = False
             for d, c in enumerate([1, 2, 3, 4, 6]):
                 ncvar = nc_loop.variables[f'ch{c}']

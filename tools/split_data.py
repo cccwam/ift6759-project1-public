@@ -46,9 +46,9 @@ def write_cfg_file(json_file, params):
 
     for (param, split) in zip(params, ['train', 'validation', 'test']):
         if param is not None:
-            with open(json_file.format(split), 'w') as f:
-                f.write(json.dumps(param, indent=2))
-                f.write('\n')
+            with open(json_file.format(split), 'w') as cfg_file_handler:
+                cfg_file_handler.write(json.dumps(param, indent=2))
+                cfg_file_handler.write('\n')
 
 
 def lightweight_year_split(
@@ -85,8 +85,8 @@ def generate_params(catalog_file=default_catalog_path, method='lightweight_year_
 
     """
 
-    with open(catalog_file, 'rb') as f:
-        df = pickle.load(f)
+    with open(catalog_file, 'rb') as df_file_handler:
+        df = pickle.load(df_file_handler)
     # TODO change to a more elegant way of selecting method
     target_datetimes_split = globals()[method](**args)
     params = []

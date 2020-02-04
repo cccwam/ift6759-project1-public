@@ -43,12 +43,36 @@ def removeNightValues(dataframe):
                             (dataframe.PSU_DAYTIME==1) |
                             (dataframe.SXF_DAYTIME==1)]
 
-def removeNanValues(dataframe):
-    pass
+def removeNcdfNanValues(dataframe):
+    return dataframe[dataframe['ncdf_path']!='nan']
 
-
+# WIP
 def fillGHIValues(dataframe):
-    pass
+    count = 0
+    stations = ['BND', 'TBL', 'DRA', 'FPK', 'GWN', 'PSU', 'SXF']
+
+    #for i, row in noNcdfNan.iterrows():
+    for i in range(len(dataframe)):
+        for station in stations:
+            #currentRow = noNcdfNan.iloc[k]
+            #stationColumn = noNcdfNan
+            
+            #if pd.notnull(currentRow[f'{station}_GHI']) == False:
+        
+                # Get the previous ghi value
+                #previousGHI = noNcdfNan.iloc[k-1, f'{station}_GHI']
+                # Search the first nonnull ghi value
+            #   j = 0
+            #   while(not pd.notnull(row.shift(j)[f'{station}_GHI'])):
+            #      j+=1
+                
+            #  nextGHI = row.shift(j)[f'{station}_GHI']
+            
+                # Fill the value with the average of the two
+            #   print(row.shift(j)[f'{station}_GHI'])
+                #noNcdfNan.at[j,f"{station}_GHI"] = (previousGHI+nextGHI)/2
+
+             
 
 if __name__ == '__main__':
     main()

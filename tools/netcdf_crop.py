@@ -5,6 +5,7 @@ import pickle
 import datetime
 
 import numpy as np
+import numpy.ma as ma
 import netCDF4
 import tqdm
 
@@ -12,27 +13,32 @@ import tqdm
 # Usage: python netcdf_crop.py cfg_file.json [crop_size] [path_output]
 
 
-def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
+def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
+                     debug_mnt_path=None):
     dc = crop_size // 2
-    with open(cfg_file, 'r') as f:
-        cfg = json.loads(f.read())
+    cfg_name = os.path.basename(cfg_file).split('.')[0]
+    with open(cfg_file, 'r') as cfg_file_handler:
+        cfg = json.loads(cfg_file_handler.read())
 
-    with open(cfg['dataframe_path'], 'rb') as f:
-        df = pickle.load(f)
+    with open(cfg['dataframe_path'], 'rb') as df_file_handler:
+        df = pickle.load(df_file_handler)
 
-    dt0 = datetime.datetime(*list(map(int, cfg['start_bound'].split('-'))))
     ddt = datetime.timedelta(minutes=15)
-    dtf = datetime.datetime(*list(map(int, cfg['end_bound'].split('-'))))
 
     all_dt = []
-    next_dt = dt0
-    while next_dt < dtf:
-        all_dt.append(next_dt)
-        next_dt = all_dt[-1] + ddt
+    for dt_str in cfg['target_datetimes']:
+        dt0 = datetime.datetime.fromisoformat(dt_str)
+        for i in range(4, 0, -1):
+            all_dt.append(dt0 - i * ddt)
+        all_dt.append(dt0)
+
+    chunksizes = 480
+    if len(all_dt) < 480:
+        chunksizes = len(all_dt)
 
     for station, coord in cfg['stations'].items():
         nc = netCDF4.Dataset(
-            os.path.join(path_output, f'preloader_{station}.nc'), 'w')
+            os.path.join(path_output, f'preloader_{cfg_name}_{station}.nc'), 'w')
         nc.createDimension('time', len(all_dt))
         nc.createDimension('lat', crop_size)
         nc.createDimension('lon', crop_size)
@@ -46,14 +52,22 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
             channels.append(
                 nc.createVariable(
                     f'ch{c}', 'f4', ('time', 'lat', 'lon'), zlib=True,
-                    chunksizes=(480, crop_size, crop_size)))
+                    chunksizes=(chunksizes, crop_size, crop_size)))
 
         init = True
         for t, dt in enumerate(tqdm.tqdm(all_dt)):
             k = df.index.get_loc(dt)
+            nc_path = df['ncdf_path'][k]
+            if debug_mnt_path:
+                nc_path = os.path.join(debug_mnt_path, nc_path.lstrip('/'))
             try:
-                nc_loop = netCDF4.Dataset(df['ncdf_path'][k], 'r')
+                nc_loop = netCDF4.Dataset(nc_path, 'r')
             except OSError:
+                # What to do when the netCDF4 file is not available.
+                # Currently set everything to 0
+                for d, c in enumerate([1, 2, 3, 4, 6]):
+                    channels[d][t, :, :] = np.zeros(channels[d].shape)
+                time[t] = netCDF4.date2num(dt, time.units, time.calendar)
                 continue
             if init:
                 lat_loop = nc_loop['lat'][:]
@@ -67,7 +81,9 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.'):
                 init = False
             for d, c in enumerate([1, 2, 3, 4, 6]):
                 ncvar = nc_loop.variables[f'ch{c}']
-                channels[d][t, :, :] = ncvar[0, i - dc:i + dc, j - dc:j + dc]
+                # Here we fill missing values with 0
+                channels[d][t, :, :] = ma.filled(ncvar[0, i - dc:i + dc, j - dc:j + dc], 0)
+                time[t] = nc_loop.variables['time'][0]
             nc_loop.close()
 
         nc.close()
@@ -82,4 +98,8 @@ if __name__ == '__main__':
         path_out = sys.argv[3]
     else:
         path_out = '.'
-    netcdf_preloader(sys.argv[1], crop, path_out)
+    if len(sys.argv) > 4:
+        mnt_path = sys.argv[4]
+    else:
+        mnt_path = None
+    netcdf_preloader(sys.argv[1], crop, path_out, mnt_path)

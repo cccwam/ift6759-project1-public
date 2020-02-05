@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "dataframe_path": {
+      "type": "string"
+    },
+    "start_bound": {
+      "type": "string"
+    },
+    "end_bound": {
+      "type": "string"
+    },
+    "stations": {
+      "type": "object",
+      "properties": {
+        "BND": {
+          "type": "array"
+        },
+        "TBL": {
+          "type": "array"
+        },
+        "DRA": {
+          "type": "array"
+        },
+        "FPK": {
+          "type": "array"
+        },
+        "GWN": {
+          "type": "array"
+        },
+        "PSU": {
+          "type": "array"
+        },
+        "SXF": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "BND",
+        "TBL",
+        "DRA",
+        "FPK",
+        "GWN",
+        "PSU",
+        "SXF"
+      ],
+      "additionalProperties": false
+    },
+    "target_time_offsets": {
+      "type": "array"
+    },
+    "target_datetimes": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "dataframe_path",
+    "start_bound",
+    "end_bound",
+    "stations",
+    "target_time_offsets",
+    "target_datetimes"
+  ],
+  "additionalProperties": false
+}

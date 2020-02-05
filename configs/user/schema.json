@@ -1,26 +1,32 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
+  "definitions": {
+    "python-definition": {
+      "type": "object",
+      "properties": {
+        "module": {
+          "description": "The python module to load.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The python name to load.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "module",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "model": {
       "type": "object",
       "properties": {
         "definition": {
-          "type": "object",
-          "properties": {
-            "module": {
-              "description": "The python module to load.",
-              "type": "string"
-            },
-            "name": {
-              "description": "The python name to load.",
-              "type": "string"
-            }
-          },
-          "required": [
-            "module",
-            "name"
-          ]
+          "$ref": "#/definitions/python-definition"
         },
         "params": {
           "type": "object",
@@ -35,36 +41,25 @@
         "definition",
         "params",
         "path"
-      ]
+      ],
+      "additionalProperties": false
     },
     "data_loader": {
       "type": "object",
       "properties": {
         "definition": {
-          "type": "object",
-          "properties": {
-            "module": {
-              "description": "The python module to load.",
-              "type": "string"
-            },
-            "name": {
-              "description": "The python name to load.",
-              "type": "string"
-            }
-          },
-          "required": [
-            "module",
-            "name"
-          ]
+          "$ref": "#/definitions/python-definition"
         }
       },
       "required": [
         "definition"
-      ]
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
     "model",
     "data_loader"
-  ]
+  ],
+  "additionalProperties": false
 }

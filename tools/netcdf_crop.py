@@ -100,11 +100,6 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
         result.wait()
 
 
-netcdf_preloader('../../../daily_random_02_june_06.json',
-                 50, '.',
-                 '/run/user/1000/gvfs/sftp:host=helios3.calculquebec.ca,user=guest119')
-
-
 if __name__ == '__main__':
     if len(sys.argv) > 2:
         crop = int(sys.argv[2])

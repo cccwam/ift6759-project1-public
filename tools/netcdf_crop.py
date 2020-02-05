@@ -3,6 +3,7 @@ import sys
 import json
 import pickle
 import datetime
+import multiprocessing as mp
 
 import numpy as np
 import numpy.ma as ma
@@ -11,6 +12,61 @@ import tqdm
 
 # Script for preprocessing crop around stations
 # Usage: python netcdf_crop.py cfg_file.json [crop_size] [path_output]
+
+
+def write_netcdf(path_output, cfg_name, station, all_dt, crop_size, chunksizes,
+                 df, debug_mnt_path, coord, dc):
+    nc = netCDF4.Dataset(
+        os.path.join(path_output, f'preloader_{cfg_name}_{station}.nc'), 'w')
+    nc.createDimension('time', len(all_dt))
+    nc.createDimension('lat', crop_size)
+    nc.createDimension('lon', crop_size)
+    time = nc.createVariable('time', 'f8', ('time',))
+    time.calendar = 'standard'
+    time.units = 'days since 1970-01-01 00:00:00'
+    lat = nc.createVariable('lat', 'f4', ('lat',))
+    lon = nc.createVariable('lon', 'f4', ('lon',))
+    channels = []
+    for c in [1, 2, 3, 4, 6]:
+        channels.append(
+            nc.createVariable(
+                f'ch{c}', 'f4', ('time', 'lat', 'lon'), zlib=True,
+                chunksizes=(chunksizes, crop_size, crop_size)))
+
+    init = True
+    for t, dt in enumerate(tqdm.tqdm(all_dt)):
+        k = df.index.get_loc(dt)
+        nc_path = df['ncdf_path'][k]
+        if debug_mnt_path:
+            nc_path = os.path.join(debug_mnt_path, nc_path.lstrip('/'))
+        try:
+            nc_loop = netCDF4.Dataset(nc_path, 'r')
+        except OSError:
+            # What to do when the netCDF4 file is not available.
+            # Currently set everything to 0
+            for d, c in enumerate([1, 2, 3, 4, 6]):
+                channels[d][t, :, :] = np.zeros(channels[d].shape)
+            time[t] = netCDF4.date2num(dt, time.units, time.calendar)
+            continue
+        if init:
+            lat_loop = nc_loop['lat'][:]
+            lon_loop = nc_loop['lon'][:]
+            lat_diff = np.abs(lat_loop - coord[0])
+            i = np.where(lat_diff == lat_diff.min())[0][0]
+            lon_diff = np.abs(lon_loop - coord[1])
+            j = np.where(lon_diff == lon_diff.min())[0][0]
+            lat[:] = lat_loop[i - dc:i + dc]
+            lon[:] = lon_loop[j - dc:j + dc]
+            init = False
+        for d, c in enumerate([1, 2, 3, 4, 6]):
+            ncvar = nc_loop.variables[f'ch{c}']
+            # Here we fill missing values with 0
+            channels[d][t, :, :] = ma.filled(
+                ncvar[0, i - dc:i + dc, j - dc:j + dc], 0)
+            time[t] = nc_loop.variables['time'][0]
+        nc_loop.close()
+
+    nc.close()
 
 
 def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
@@ -36,57 +92,17 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
     if len(all_dt) < 480:
         chunksizes = len(all_dt)
 
-    for station, coord in cfg['stations'].items():
-        nc = netCDF4.Dataset(
-            os.path.join(path_output, f'preloader_{cfg_name}_{station}.nc'), 'w')
-        nc.createDimension('time', len(all_dt))
-        nc.createDimension('lat', crop_size)
-        nc.createDimension('lon', crop_size)
-        time = nc.createVariable('time', 'f8', ('time',))
-        time.calendar = 'standard'
-        time.units = 'days since 1970-01-01 00:00:00'
-        lat = nc.createVariable('lat', 'f4', ('lat',))
-        lon = nc.createVariable('lon', 'f4', ('lon',))
-        channels = []
-        for c in [1, 2, 3, 4, 6]:
-            channels.append(
-                nc.createVariable(
-                    f'ch{c}', 'f4', ('time', 'lat', 'lon'), zlib=True,
-                    chunksizes=(chunksizes, crop_size, crop_size)))
+    pool = mp.Pool(mp.cpu_count())
+    results = [pool.apply_async(write_netcdf, args=(
+        path_output, cfg_name, station, all_dt, crop_size, chunksizes,
+        df, debug_mnt_path, coord, dc)) for station, coord in cfg['stations'].items()]
+    for result in results:
+        result.wait()
 
-        init = True
-        for t, dt in enumerate(tqdm.tqdm(all_dt)):
-            k = df.index.get_loc(dt)
-            nc_path = df['ncdf_path'][k]
-            if debug_mnt_path:
-                nc_path = os.path.join(debug_mnt_path, nc_path.lstrip('/'))
-            try:
-                nc_loop = netCDF4.Dataset(nc_path, 'r')
-            except OSError:
-                # What to do when the netCDF4 file is not available.
-                # Currently set everything to 0
-                for d, c in enumerate([1, 2, 3, 4, 6]):
-                    channels[d][t, :, :] = np.zeros(channels[d].shape)
-                time[t] = netCDF4.date2num(dt, time.units, time.calendar)
-                continue
-            if init:
-                lat_loop = nc_loop['lat'][:]
-                lon_loop = nc_loop['lon'][:]
-                lat_diff = np.abs(lat_loop - coord[0])
-                i = np.where(lat_diff == lat_diff.min())[0][0]
-                lon_diff = np.abs(lon_loop - coord[1])
-                j = np.where(lon_diff == lon_diff.min())[0][0]
-                lat[:] = lat_loop[i - dc:i + dc]
-                lon[:] = lon_loop[j - dc:j + dc]
-                init = False
-            for d, c in enumerate([1, 2, 3, 4, 6]):
-                ncvar = nc_loop.variables[f'ch{c}']
-                # Here we fill missing values with 0
-                channels[d][t, :, :] = ma.filled(ncvar[0, i - dc:i + dc, j - dc:j + dc], 0)
-                time[t] = nc_loop.variables['time'][0]
-            nc_loop.close()
 
-        nc.close()
+netcdf_preloader('../../../daily_random_02_june_06.json',
+                 50, '.',
+                 '/run/user/1000/gvfs/sftp:host=helios3.calculquebec.ca,user=guest119')
 
 
 if __name__ == '__main__':

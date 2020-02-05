@@ -100,6 +100,47 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
         result.wait()
 
 
+def test_load_time(cfg_file, crop_size=50):
+    dc = crop_size // 2
+    with open(cfg_file, 'r') as cfg_file_handler:
+        cfg = json.loads(cfg_file_handler.read())
+
+    with open(cfg['dataframe_path'], 'rb') as df_file_handler:
+        df = pickle.load(df_file_handler)
+
+    ddt = datetime.timedelta(minutes=15)
+
+    all_dt = []
+    for dt_str in cfg['target_datetimes']:
+        dt0 = datetime.datetime.fromisoformat(dt_str)
+        for i in range(4, 0, -1):
+            all_dt.append(dt0 - i * ddt)
+        all_dt.append(dt0)
+
+    for station, coord in cfg['stations'].items():
+        init = True
+        for t, dt in enumerate(tqdm.tqdm(all_dt)):
+            k = df.index.get_loc(dt)
+            nc_path = df['ncdf_path'][k]
+            try:
+                nc_loop = netCDF4.Dataset(nc_path, 'r')
+            except OSError:
+                continue
+            if init:
+                lat_loop = nc_loop['lat'][:]
+                lon_loop = nc_loop['lon'][:]
+                lat_diff = np.abs(lat_loop - coord[0])
+                i = np.where(lat_diff == lat_diff.min())[0][0]
+                lon_diff = np.abs(lon_loop - coord[1])
+                j = np.where(lon_diff == lon_diff.min())[0][0]
+                init = False
+            for d, c in enumerate([1, 2, 3, 4, 6]):
+                ncvar = nc_loop.variables[f'ch{c}']
+                load_data = ncvar[0, :, :]
+            load_time = nc_loop.variables['time'][0]
+            nc_loop.close()
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 2:
         crop = int(sys.argv[2])
@@ -113,4 +154,11 @@ if __name__ == '__main__':
         mnt_path = sys.argv[4]
     else:
         mnt_path = None
-    netcdf_preloader(sys.argv[1], crop, path_out, mnt_path)
+    if len(sys.argv) > 5:
+        mode = sys.argv[5]
+    else:
+        mode = None
+    if mode == 'test':
+        test_load_time(sys.argv[1], crop)
+    else:
+        netcdf_preloader(sys.argv[1], crop, path_out, mnt_path)

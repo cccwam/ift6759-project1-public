@@ -28,7 +28,7 @@
         "definition": {
           "$ref": "#/definitions/python-definition"
         },
-        "params": {
+        "hyper_params": {
           "type": "object",
           "description": "The hyper-parameters to use for this model during training."
         },
@@ -39,7 +39,7 @@
       },
       "required": [
         "definition",
-        "params",
+        "hyper_params",
         "path"
       ],
       "additionalProperties": false

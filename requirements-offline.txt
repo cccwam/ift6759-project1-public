@@ -1,6 +1,7 @@
 # Notes:
 #   The following dependencies are available on helios compute nodes
 
+flake8
 pytest
 pytest-cov
 

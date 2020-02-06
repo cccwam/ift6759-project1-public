@@ -4,7 +4,7 @@
       "module": "libs.models.baselines",
       "name": "ineichen_clear_sky"
     },
-    "hyper_params": {
+    "params": {
       "rmse_test_scale_factor": 1.25
     },
     "path": ""

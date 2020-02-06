@@ -1,3 +1,3 @@
 [flake8]
-exclude = .env,.venv,env/,venv/,ENV/,env.bak/,venv.bak/
+exclude = .env,.venv,env/,venv/,ENV/,env.bak/,venv.bak/,evaluator.py
 max-line-length = 120

@@ -1,0 +1,18 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.baselines",
+      "name": "ineichen_clear_sky"
+    },
+    "params": {
+      "rmse_test_scale_factor": 1.25
+    },
+    "path": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.baselines",
+      "name": "data_loader_v1"
+    }
+  }
+}

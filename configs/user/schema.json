@@ -54,7 +54,7 @@
       "required": [
         "definition"
       ],
-      "additionalProperties": false
+      "additionalProperties": true
     }
   },
   "required": [

@@ -6,6 +6,7 @@ import typing
 
 import pandas as pd
 import numpy as np
+import netCDF4
 import tensorflow as tf
 import tqdm
 
@@ -105,10 +106,20 @@ def prepare_model(
     if not model_path:
         model_path = '../model/best_model.h5'
 
-    if not path.exists(model_path):
-        raise FileNotFoundError(f'Error: The file {model_path} does not exist.')
+    if model_path == 'online':
+        model = helpers.import_from(
+            config['model']['definition']['module'],
+            config['model']['definition']['name']
+        )(
+            stations=stations,
+            target_time_offsets=target_time_offsets,
+            config=config
+        )
+    else:
+        if not path.exists(model_path):
+            raise FileNotFoundError(f'Error: The file {model_path} does not exist.')
 
-    model = tf.keras.models.load_model(model_path)
+        model = tf.keras.models.load_model(model_path)
 
     ################################### MODIFY ABOVE ##################################
 

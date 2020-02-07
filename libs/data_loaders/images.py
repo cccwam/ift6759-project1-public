@@ -4,8 +4,8 @@ import typing
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 import netCDF4
+import tensorflow as tf
 
 
 def data_loader_images(
@@ -41,30 +41,41 @@ def data_loader_images(
 
         batch_size = 256
         output_seq_len = 4
+        # Currently only support one station at a time.
         if len(list(stations.keys())) > 1:
             raise NotImplementedError()
+
         station_name = list(stations.keys())[0]
-        nc = netCDF4.Dataset(os.path.join('/project/cq-training-1/project1/teams/team03/data',
-                                          f"preloader_{config['admin_name']}_{station_name}.nc"))
+        data_file = f"preloader_{config['data_loader']['params']['admin_name']}_{station_name}.nc"
+
+        nc = netCDF4.Dataset(
+            os.path.join('/project/cq-training-1/project1/teams/team03/data', data_file), 'r')
         nc_var = nc.variables['data']
+        # Loading all data in memory greatly speeds up things, but if we move to much larger
+        # sample size and crop size this might need to be done differently.
+        nc_var_data = nc_var[:, :, :, :, :]
         nc_time = nc.variables['time']
+
+        # match target datenums with indices in the netcdf file, we need to allow for
+        # small mismatch in seconds due to the nature of num2date and date2num.
         target_datenums = netCDF4.date2num(target_datetimes, nc_time.units, nc_time.calendar)
         nc_time_data = nc_time[:]
-        indices_in_nc = np.zeros(len(target_datenums))
+        indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
         for i, target_datenum in enumerate(target_datenums):
-            indices_in_nc[i] = np.isclose(nc_time_data, target_datenum, atol=0.001)[0][0]
+            indices_in_nc[i] = np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
+        # Generate batch
         for i in range(0, len(target_datetimes), batch_size):
             batch_of_datetimes = target_datetimes[i:i + batch_size]
             batch_of_nc_indices = indices_in_nc[i:i + batch_size]
+            # Extract ground truth GHI from dataframe
             targets_np = np.zeros([len(batch_of_datetimes), output_seq_len])
-
             for j, dt in enumerate(batch_of_datetimes):
                 for m in range(output_seq_len):
                     k = dataframe.index.get_loc(dt + target_time_offsets[m])
                     targets_np[j, m] = dataframe[f"{station_name}_GHI"][k]
 
-            samples = tf.convert_to_tensor(nc_var[batch_of_nc_indices, :, :, :, :])
+            samples = tf.convert_to_tensor(nc_var_data[batch_of_nc_indices, :, :, :, :])
             targets = tf.convert_to_tensor(targets_np)
 
             yield samples, targets

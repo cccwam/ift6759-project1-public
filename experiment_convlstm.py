@@ -7,8 +7,8 @@ import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
 from libs.models.convlstm import my_conv_lstm_model_builder
-from libs.helper.tensorboard_helper import tensorboard_experiment_id
-from libs.datasets.dummy_dataset import helper_dummy_dataset
+from libs.helpers import get_tensorboard_experiment_id
+from tools.dummy_dataset_generator import generate_dummy_dataset
 
 from importlib import import_module
 import sys
@@ -87,7 +87,7 @@ print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_
 print("------------")
 
 # Create a unique id for the experiment for Tensorboard
-tensorboard_exp_id = tensorboard_experiment_id(
+tensorboard_exp_id = get_tensorboard_experiment_id(
     initial="FM",  # TODO Change this to your own
     experiment_name="dummy_model")
 
@@ -104,7 +104,7 @@ for optimizer in HP_OPTIMIZER.domain.values:
         HP_OPTIMIZER: optimizer,
     }
     print("Start variation id:", tensorboard_exp_id / str(variation_num))
-    train_test_model(dataset=helper_dummy_dataset(batch_size=16),  # TODO change this for the right dataset
+    train_test_model(dataset=generate_dummy_dataset(batch_size=16),  # TODO change this for the right dataset
                      model_builder=my_conv_lstm_model_builder,  # TODO change this to your own model
                      epochs=5,
                      tensorboard_log_dir=tensorboard_exp_id / str(variation_num), hparams=hparams,

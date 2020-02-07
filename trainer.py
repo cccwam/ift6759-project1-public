@@ -4,7 +4,7 @@
 import argparse
 import typing
 
-from libs import utils
+from libs import helpers
 
 
 def main(
@@ -12,14 +12,17 @@ def main(
         user_config_path: typing.AnyStr,
         tensorboard_tracking_folder: typing.AnyStr
 ):
-    admin_config_dict = utils.load_admin_config(admin_config_path)
-    user_config_dict = utils.load_user_config(user_config_path)
+    admin_config_dict = helpers.load_dict(admin_config_path)
+    user_config_dict = helpers.load_dict(user_config_path)
 
-    data_loader = utils.get_data_loader(admin_config_dict, user_config_dict)
-    model = utils.get_model(admin_config_dict, user_config_dict)
+    helpers.validate_admin_config(admin_config_dict)
+    helpers.validate_user_config(user_config_dict)
 
-    # TODO: Implement a similar signature as the following
+    data_loader = helpers.get_data_loader(admin_config_dict, user_config_dict)
+    model = helpers.get_model(admin_config_dict, user_config_dict)
+
     model.train(data_loader, tensorboard_tracking_folder)
+    model.save(helpers.generate_model_name(user_config_dict))
 
 
 if __name__ == '__main__':

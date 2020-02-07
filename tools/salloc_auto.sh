@@ -22,7 +22,7 @@ echo "Opening an interactive session."
 {
   # Try
   echo "Using the class's reservation..."
-  salloc $specs --reservation=IFT6759_$(date +%Y-%m-%-d)
+  salloc $specs --reservation=IFT6759_$(date +%Y-%m-%d)
 } || {
   # Catch
   echo "Skipping the reservation..."

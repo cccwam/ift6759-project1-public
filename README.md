@@ -35,7 +35,7 @@ python evaluator.py \
 python trainer.py \
     --admin_cfg_path configs/admin/dummy_train_cfg.json \
     --user_cfg_path configs/user/ineichen_clear_sky_v1.json \
-    --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/
+    --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/$USER
 ```
 
 * `admin_cfg_path`: Path to the JSON config file used to store train set parameters.

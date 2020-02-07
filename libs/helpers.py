@@ -3,13 +3,10 @@ import jsonschema
 import uuid
 from datetime import datetime
 import os
-from importlib import import_module
 import sys
+from importlib import import_module
 
 import tensorflow as tf
-from tensorboard.plugins.hparams import api as hp
-
-from tools.dummy_dataset_generator import generate_dummy_dataset
 
 
 def import_from(module, name):
@@ -76,55 +73,6 @@ def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
     return os.path.join(tensorboard_tracking_folder, model_sub_folder)
 
 
-def train_model(model, data_loader, tensorboard_tracking_folder):
-    # Activate this for multi gpu
-    # Use only a maximum of 4 GPUs
-    nb_gpus = tf.test.gpu_device_name()
-
-    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, len(nb_gpus)))])
-    print("------------")
-    print('Number of available GPU devices: {}'.format(nb_gpus))
-    print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
-    print("------------")
-
-    # Create a unique id for the experiment for Tensorboard
-    tensorboard_exp_id = get_tensorboard_experiment_id(
-        experiment_name="dummy_model",
-        tensorboard_tracking_folder=tensorboard_tracking_folder
-    )
-
-    # Tensorboard logger for the different hyperparameters
-    # TODO change this to the right hyperparameters space
-    hp_optimizer = hp.HParam(
-        'optimizer',
-        hp.Discrete([
-            "tf.keras.optimizers.Adam",
-            "tf.keras.optimizers.SGD",
-            "libs.custom.dummy_optimizer.MySGD_with_lower_learning_rate"
-        ])
-    )
-
-    # Main loop to iterate over all possible hyperparameters
-    variation_num = 0
-    # TODO change this to the right hyperparameters space
-    for optimizer in hp_optimizer.domain.values:
-        hparams = {
-            hp_optimizer: optimizer,
-        }
-        tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
-        print("Start variation id:", tensorboard_log_dir)
-        train_test_model(
-            dataset=generate_dummy_dataset(batch_size=16),  # TODO change this for the right dataset
-            model=model,
-            hp_optimizer=hp_optimizer,
-            epochs=5,
-            tensorboard_log_dir=tensorboard_log_dir,
-            hparams=hparams,
-            mirrored_strategy=mirrored_strategy
-        )
-        variation_num += 1
-
-
 def compile_model(model, hparams, hp_optimizer):
     """
         Helper function to compile a new model at each variation of the experiment
@@ -155,45 +103,3 @@ def compile_model(model, hparams, hp_optimizer):
         metrics=[tf.keras.metrics.RootMeanSquaredError()]
     )
     return model_instance
-
-
-def train_test_model(
-        dataset,
-        model,
-        hp_optimizer,
-        epochs,
-        tensorboard_log_dir,
-        hparams,
-        mirrored_strategy,
-        checkpoints_dir="/project/cq-training-1/project1/teams/team03/checkpoints"
-):
-    """
-    Training loop
-
-    :param dataset:
-    :param model:
-    :param hp_optimizer:
-    :param epochs:
-    :param tensorboard_log_dir:
-    :param hparams:
-    :param mirrored_strategy:
-    :param checkpoints_dir:
-    :return:
-    """
-    # Multi GPU setup
-    if mirrored_strategy is not None and mirrored_strategy.num_replicas_in_sync > 1:
-        with mirrored_strategy.scope():
-            compiled_model = compile_model(model, hparams, hp_optimizer)
-    else:
-        compiled_model = compile_model(model, hparams, hp_optimizer)
-
-    callbacks = [
-        # Workaround for https://github.com/tensorflow/tensorboard/issues/2412
-        tf.keras.callbacks.TensorBoard(log_dir=str(tensorboard_log_dir), profile_batch=0),
-        hp.KerasCallback(writer=str(tensorboard_log_dir), hparams=hparams),
-
-        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
-                                           save_weights_only=True),
-    ]
-
-    compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks)

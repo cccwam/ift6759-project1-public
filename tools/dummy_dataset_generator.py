@@ -100,14 +100,16 @@ def generate_noisy_movies(n_samples=1200, n_frames=15, frame_shape=(80, 80)):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-b", "--batch_size", type=str,
+    parser.add_argument("-b", "--batch_size", type=int,
                         help="The amount of entries the dataset will return as a batch")
-    parser.add_argument("-ns", "--n_samples", type=str,
+    parser.add_argument("-ns", "--n_samples", type=int,
                         help="The number of movies")
-    parser.add_argument("-nf", "--n_frames", type=str, default=None,
+    parser.add_argument("-nf", "--n_frames", type=int, default=None,
                         help="Each movie's number of frames")
-    parser.add_argument("-fs", "--frame_shape", type=str, default=None,
-                        help="The shape of each frame")
+    parser.add_argument("-fw", "--frame_width", type=int, default=None,
+                        help="The width of each frame")
+    parser.add_argument("-fh", "--frame_height", type=int, default=None,
+                        help="The height of each frame")
     parser.add_argument("-sf", "--pickle_save_file", type=str, default=None,
                         help="The pickle file to save the dataset to")
     args = parser.parse_args()
@@ -115,6 +117,6 @@ if __name__ == '__main__':
         batch_size=args.batch_size,
         n_samples=args.n_samples,
         n_frames=args.n_frames,
-        frame_shape=args.frame_shape
+        frame_shape=(args.frame_width, args.frame_height)
     )
     pickle.dump(dataset, open(args.pickle_save_file, 'wb'))

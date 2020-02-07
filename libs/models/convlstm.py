@@ -5,74 +5,45 @@
 import tensorflow as tf
 
 
-def my_conv_lstm_model_builder(verbose=False):
+class ConvLSTM(tf.keras.Model):
+    def __init__(self):
+        super(ConvLSTM, self).__init__(name='Convolutional LSTM')
+        self.encoder = CNNEncoder()
+        self.classifier = Classifier()
+
+    def call(self, inputs):
+        y = self.encoder(inputs)
+        return self.classifier(y)
+
+
+class CNNEncoder(tf.keras.Model):
     """
-        Builder function
-    :param verbose:
-    :return:
+    The CNN encoder module, needed to extract features map.
+
     """
+    def __init__(self, **kwargs):
+        super(CNNEncoder, self).__init__(name='Convolutional Neural Network Encoder', **kwargs)
+        self.seq = tf.keras.Sequential()
+        self.seq.add(tf.keras.layers.ConvLSTM2D(filters=40, kernel_size=(3, 3), padding='same', return_sequences=True))
+        self.seq.add(tf.keras.layers.BatchNormalization())
+        self.seq.add(tf.keras.layers.ConvLSTM2D(filters=40, kernel_size=(3, 3), padding='same', return_sequences=True))
+        self.seq.add(tf.keras.layers.BatchNormalization())
+        self.seq.add(tf.keras.layers.GlobalAveragePooling3D())
+        self.seq.add(tf.keras.layers.Flatten())
 
-    def my_cnn_encoder():
-        """
-            This function return the CNN encoder module, needed to extract features map.
-        :return: Keras model containing the CNN encoder module
-        """
-        encoder_input = tf.keras.Input(shape=(None, 40, 40, 1), name='original_img')
+    def call(self, inputs):
+        return self.seq(inputs)
 
-        x = tf.keras.layers.ConvLSTM2D(filters=40, kernel_size=(3, 3),
-                                       padding='same', return_sequences=True)(encoder_input)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.ConvLSTM2D(filters=40, kernel_size=(3, 3),
-                                       padding='same', return_sequences=True)(x)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.GlobalAveragePooling3D()(x)
-        encoder_output = tf.keras.layers.Flatten()(x)
 
-        return tf.keras.Model(encoder_input, encoder_output, name='encoder')
+class Classifier(tf.keras.Model):
+    """
+    The Classifier
 
-    def my_classifier(my_cnn_encoder):
-        """
-            This function return the classification head module.
-        :param my_cnn_encoder: Encoder which will extract features map. Used to get the output size.
-        :return: Keras model containing the classification head module
-        """
-        clf_input = tf.keras.Input(shape=my_cnn_encoder.layers[-1].output_shape[1:], name='feature_map')
+    """
+    def __init__(self, **kwargs):
+        super(Classifier, self).__init__(name='Classifier', **kwargs)
+        self.seq = tf.keras.Sequential()
+        self.seq.add(tf.keras.layers.Dense(4, activation=tf.nn.relu))
 
-        x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(clf_input)
-
-        return tf.keras.Model(clf_input, x, name='classifier')
-
-    def my_convlstm_model(my_cnn_encoder, my_classifier):
-        """
-            This function aggregates the all modules for the model.
-        :param my_cnn_encoder: Encoder which will extract features map.
-        :param my_classifier: Classification head
-        :return: Consolidation Keras model
-        """
-        # noinspection PyProtectedMember
-        model_input = tf.keras.Input(shape=my_cnn_encoder.layers[0]._batch_input_shape[1:], name='original_img')
-
-        x = my_cnn_encoder(model_input)
-        x = my_classifier(x)
-
-        return tf.keras.Model(model_input, x, name='convLSTMModel')
-
-    my_cnn_encoder = my_cnn_encoder()
-    if verbose:
-        print("")
-        my_cnn_encoder.summary()
-        print("")
-
-    my_classifier = my_classifier(my_cnn_encoder)
-    if verbose:
-        print("")
-        my_classifier.summary()
-        print("")
-
-    my_convlstm_model = my_convlstm_model(my_cnn_encoder, my_classifier)
-    if verbose:
-        print("")
-        my_convlstm_model.summary()
-        print("")
-
-    return my_convlstm_model
+    def call(self, inputs):
+        return self.seq(inputs)

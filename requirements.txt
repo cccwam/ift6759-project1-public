@@ -1,5 +1,5 @@
 # Notes:
-#   The following dependencies are available on helios compute nodes
+#   Use the script tools/create_venv.sh to install these dependencies on helios
 
 flake8
 pytest
@@ -11,3 +11,7 @@ jsonschema
 tqdm
 h5netcdf
 netCDF4
+lz4
+opencv-python
+pyyaml
+h5py

@@ -58,7 +58,7 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    data_loader = helpers.get_data_loader(
+    data_loader = helpers.get_online_data_loader(
         user_config_dict=config,
         dataframe=dataframe,
         target_datetimes=target_datetimes,
@@ -93,30 +93,15 @@ def prepare_model(
 
     ################################### MODIFY BELOW ##################################
 
-    from os import path
     from libs import helpers
 
     helpers.validate_user_config(config)
 
-    default_model_path = '../model/best_model.h5'
-    model_source = config['model']['source']
-
-    if model_source == 'online':
-        model = helpers.get_model(
-            user_config_dict=config,
-            stations=stations,
-            target_time_offsets=target_time_offsets
-        )
-    elif model_source:
-        if not path.exists(model_source):
-            raise FileNotFoundError(f'Error: The file {model_source} does not exist.')
-    else:
-        if path.exists(default_model_path):
-            model_source = default_model_path
-        else:
-            raise FileNotFoundError(f'Error: The file {default_model_path} does not exist.')
-
-    model = tf.keras.models.load_model(model_source)
+    model = helpers.prepare_model(
+        user_config_dict=config,
+        stations=stations,
+        target_time_offsets=target_time_offsets
+    )
 
     ################################### MODIFY ABOVE ##################################
 

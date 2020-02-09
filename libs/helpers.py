@@ -1,6 +1,9 @@
 import json
 import jsonschema
 import uuid
+import os
+
+import tensorflow as tf
 
 
 def import_from(module, name):
@@ -24,7 +27,7 @@ def validate_user_config(user_config_dict):
     jsonschema.validate(user_config_dict, schema_file)
 
 
-def get_data_loader(
+def get_online_data_loader(
         user_config_dict,
         admin_config_dict=None,
         dataframe=None,
@@ -33,7 +36,7 @@ def get_data_loader(
         target_time_offsets=None,
 ):
     """
-    Get data loader
+    Get an online version of the data loader defined in user_config_dict
 
     If admin_config_dict is not specified, the following have to be specified:
         * dataframe
@@ -72,14 +75,14 @@ def get_data_loader(
     )
 
 
-def get_model(
+def get_online_model(
         user_config_dict,
         admin_config_dict=None,
         stations=None,
         target_time_offsets=None,
 ):
     """
-    Get model
+    Get an online version of the model defined in user_config_dict
 
     If admin_config_dict is not specified, the following have to be specified:
         * stations
@@ -104,6 +107,45 @@ def get_model(
         target_time_offsets=target_time_offsets,
         config=user_config_dict
     )
+
+
+def prepare_model(
+        user_config_dict,
+        stations,
+        target_time_offsets
+):
+    """
+    Prepare model
+
+    Args:
+        user_config_dict: configuration dictionary holding any extra parameters that might be required by the user.
+            These parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
+            such a JSON file is completely optional, and this argument can be ignored if not needed.
+        stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
+        target_time_offsets: the list of timedeltas to predict GHIs for (by definition: [T=0, T+1h, T+3h, T+6h]).
+
+    Returns:
+        A ``tf.keras.Model`` object that can be used to generate new GHI predictions given imagery tensors.
+    """
+    default_model_path = '../model/best_model.h5'
+    model_source = user_config_dict['model']['source']
+
+    if model_source == 'online':
+        return get_online_model(
+            user_config_dict=user_config_dict,
+            stations=stations,
+            target_time_offsets=target_time_offsets
+        )
+    elif model_source:
+        if not os.path.exists(model_source):
+            raise FileNotFoundError(f'Error: The file {model_source} does not exist.')
+    else:
+        if os.path.exists(default_model_path):
+            model_source = default_model_path
+        else:
+            raise FileNotFoundError(f'Error: The file {default_model_path} does not exist.')
+
+    return tf.keras.models.load_model(model_source)
 
 
 def generate_model_name(user_config_dict):

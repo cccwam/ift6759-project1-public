@@ -2,7 +2,11 @@ import json
 import jsonschema
 import uuid
 from datetime import datetime
-from pathlib import Path
+import os
+import sys
+from importlib import import_module
+
+import tensorflow as tf
 
 
 def import_from(module, name):
@@ -58,13 +62,44 @@ def generate_model_name(user_config_dict):
     )
 
 
-def tensorboard_experiment_id(initial, experiment_name,
-                              path=Path('/project/cq-training-1/project1/teams/team03/tensorboard')):
+def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
     """
-        Create a unique id for tensorboard for the experiment
-    :param initial: initial of user
+    Create a unique id for tensorboard for the experiment
+
     :param experiment_name: name of experiment
-    :param path:
+    :param tensorboard_tracking_folder: Path where to store tensorboard data and save trained model
+    """
+    model_sub_folder = experiment_name + "-" + datetime.utcnow().isoformat()
+    return os.path.join(tensorboard_tracking_folder, model_sub_folder)
+
+
+def compile_model(model, hparams, hp_optimizer):
+    """
+        Helper function to compile a new model at each variation of the experiment
+    :param model:
+    :param hparams:
+    :param hp_optimizer:
     :return:
     """
-    return path / initial / (initial + "-" + experiment_name + "-" + datetime.utcnow().isoformat())
+
+    model_instance = model()
+
+    # Workaround to get the right optimizer from class path
+    # Because hparams only accept dtype string not class
+    # See https://stackoverflow.com/questions/3451779/how-to-dynamically-create-an-instance-of-a-class-in-python
+    class_name = hparams[hp_optimizer].rsplit('.', 1)
+    if len(class_name) > 1:
+        module_path, class_name = class_name
+        module_path = module_path.replace("tf", "tensorflow")
+        module = import_module(module_path)
+    else:
+        class_name = class_name[0]
+        module = sys.modules[__name__]
+    optimizer_instance = getattr(module, class_name)()
+
+    model_instance.compile(
+        optimizer=optimizer_instance,
+        loss=tf.keras.losses.mean_squared_error,
+        metrics=[tf.keras.metrics.RootMeanSquaredError()]
+    )
+    return model_instance

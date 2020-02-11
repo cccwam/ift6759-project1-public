@@ -53,18 +53,11 @@ def prepare_dataloader(
     """
     ################################## MODIFY BELOW ##################################
 
-    from jsonschema import validate
+    from libs import helpers
 
-    def import_from(module, name):
-        module = __import__(module, fromlist=[name])
-        return getattr(module, name)
+    helpers.validate_user_config(config)
 
-    with open('configs/user/schema.json', 'r') as f:
-        schema_data = f.read()
-    user_schema = json.loads(schema_data)
-    validate(config, user_schema)
-
-    data_loader = import_from(
+    data_loader = helpers.import_from(
         config['data_loader']['definition']['module'],
         config['data_loader']['definition']['name']
     )(
@@ -103,30 +96,19 @@ def prepare_model(
     ################################### MODIFY BELOW ##################################
 
     from os import path
-    from jsonschema import validate
+    from libs import helpers
 
-    with open('configs/user/schema.json', 'r') as f:
-        schema_data = f.read()
-    schema = json.loads(schema_data)
-    validate(config, schema)
+    helpers.validate_user_config(config)
 
     model_path = config['model']['path']
 
     if not model_path:
-        model_path = '../model/best_model.tf'
+        model_path = '../model/best_model.h5'
 
     if not path.exists(model_path):
         raise FileNotFoundError(f'Error: The file {model_path} does not exist.')
 
-    model = tf.keras.models.load_model(
-        model_path,
-        custom_objects=None,
-        compile=True
-    )(
-        stations=stations,
-        target_time_offsets=target_time_offsets,
-        config=config
-    )
+    model = tf.keras.models.load_model(model_path)
 
     ################################### MODIFY ABOVE ##################################
 

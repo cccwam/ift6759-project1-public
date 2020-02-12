@@ -39,7 +39,7 @@ def data_loader_images(
     def image_generator():
         """Baseline generator with time/lat/lon/elev."""
 
-        batch_size = 256
+        batch_size = 1
         output_seq_len = 4
         # Currently only support one station at a time.
         if len(list(stations.keys())) > 1:

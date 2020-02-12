@@ -69,7 +69,7 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
         tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
         print("Start variation id:", tensorboard_log_dir)
         train_test_model(
-            dataset=generate_dummy_dataset(batch_size=16),  # TODO change this for the right dataset
+            dataset=data_loader.batch(256),  # TODO change this for the right dataset
             model=model,
             hp_optimizer=hp_optimizer,
             epochs=5,
@@ -119,6 +119,8 @@ def train_test_model(
                                            save_weights_only=True),
     ]
 
+    print(model.summary())
+    print(type(dataset))
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks)
 
 

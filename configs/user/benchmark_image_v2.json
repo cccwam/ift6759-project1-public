@@ -5,7 +5,7 @@
       "name": "test_mlp"
     },
     "hyper_params": {},
-    "source": "libs.models.debug.test_mlp.9c6886e884b04b959d4246e9b69fbcee.h5"
+    "source": "libs.models.debug.test_mlp.202ba31a9f3643f29fbfed345e086294.tf.index"
   },
   "data_loader": {
     "definition": {

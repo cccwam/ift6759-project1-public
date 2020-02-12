@@ -1,4 +1,3 @@
-import os
 import sys
 import pickle
 import json
@@ -9,7 +8,7 @@ import argparse
 import numpy as np
 
 # Script for generating config files for training/validation/test split
-# Usage: python split_data.py [path_to_catalog.pkl] [cfg_name_{0}.json]
+# Usage: python split_data.py [-c path_to_catalog.pkl] [-l cfg_name_{0}.json]
 
 default_catalog_path = '/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl'
 
@@ -76,20 +75,21 @@ def lightweight_year_split(
     return np.array(resulting_splits)
 
 
-def generate_params(catalog_file=default_catalog_path, method='lightweight_year_split', **args):
+def generate_params(catalog_file=default_catalog_path,
+                    method='lightweight_year_split', **kwargs):
     """Generate parameters for config file based on a given method
 
     :param catalog_file: path to pickle catalog file.
     :param method: str, name of split method to use.
-    :param args: additional keyword arguments passed to the split method.
+    :param kwargs: additional keyword arguments passed to the split method.
     :return: tuple (train, val, test) of dictionary of config parameters.
 
     """
 
     with open(catalog_file, 'rb') as df_file_handler:
         df = pickle.load(df_file_handler)
-    # TODO change to a more elegant way of selecting method
-    target_datetimes_split = globals()[method](**args)
+    split_method = getattr(sys.modules[__name__], method)
+    target_datetimes_split = split_method(**kwargs)
     params = []
     for i in range(3):
         if target_datetimes_split[i] is None:

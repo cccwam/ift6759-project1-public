@@ -46,7 +46,7 @@ def data_loader_images(
             raise NotImplementedError()
 
         station_name = list(stations.keys())[0]
-        data_file = f"preloader_{config['data_loader']['params']['admin_name']}_{station_name}.nc"
+        data_file = f"preloader_{config['data_loader']['hyper_params']['admin_name']}_{station_name}.nc"
 
         nc = netCDF4.Dataset(
             os.path.join('/project/cq-training-1/project1/teams/team03/data', data_file), 'r')

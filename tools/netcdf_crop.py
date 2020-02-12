@@ -3,6 +3,7 @@ import sys
 import json
 import pickle
 import datetime
+import argparse
 
 import numpy as np
 import numpy.ma as ma
@@ -130,12 +131,11 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        crop = int(sys.argv[2])
-    else:
-        crop = 50
-    if len(sys.argv) > 3:
-        path_out = sys.argv[3]
-    else:
-        path_out = '.'
-    netcdf_preloader(sys.argv[1], crop, path_out)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('cfg_file', help='admin cfg file')
+    parser.add_argument('-c', '--crop_size', type=int, default=50,
+                        help='crop size')
+    parser.add_argument('-o', '--output_path', type=str, default='.',
+                        help='output path')
+    args = parser.parse_args()
+    netcdf_preloader(args.cfg_file, args.crop_size, args.output_path)

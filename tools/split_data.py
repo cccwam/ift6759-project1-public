@@ -4,6 +4,7 @@ import pickle
 import json
 import random
 from datetime import timedelta, date, datetime
+import argparse
 
 import numpy as np
 
@@ -105,13 +106,13 @@ def generate_params(catalog_file=default_catalog_path, method='lightweight_year_
 
 
 if __name__ == '__main__':
-    if (len(sys.argv) > 1) and os.path.isfile(sys.argv[1]):
-        catalog = sys.argv[1]
-    else:
-        catalog = default_catalog_path
-    if len(sys.argv) > 2:
-        cfg_name = sys.argv[2]
-    else:
-        cfg_name = 'project1_cfg_{0}.json'
-    gparams = generate_params(catalog)
-    write_cfg_file(cfg_name, gparams)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--catalog_path', type=str,
+                        default=default_catalog_path,
+                        help='path to the pandas catalog file')
+    parser.add_argument('-l', '--label', type=str,
+                        default='project1_cfg_{0}.json',
+                        help='label for the parameters file, with a {0} placeholder')
+    args = parser.parse_args()
+    gparams = generate_params(args.catalog_path)
+    write_cfg_file(args.label, gparams)

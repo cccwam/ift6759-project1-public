@@ -121,6 +121,7 @@ def train_test_model(
 
     print(model.summary())
     print(type(dataset))
+    print(dataset.element_spec)
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks)
 
 

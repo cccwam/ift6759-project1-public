@@ -45,6 +45,7 @@ def data_loader_images(
         if len(list(stations.keys())) > 1:
             raise NotImplementedError()
 
+        print(type(stations))
         station_name = list(stations.keys())[0]
         data_file = f"preloader_{config['data_loader']['hyper_params']['admin_name']}_{station_name}.nc"
 
@@ -81,5 +82,5 @@ def data_loader_images(
             yield samples, targets
 
     return tf.data.Dataset.from_generator(
-        image_generator, (tf.float32, tf.float32)
+        image_generator, (tf.float32, tf.float32), (tf.TensorShape([5, 5, 50, 50]), tf.TensorShape([4,]))
     )

@@ -32,15 +32,18 @@
           "type": "object",
           "description": "The hyper-parameters to use for this model during training."
         },
-        "path": {
-          "type": "string",
-          "description": "The path to the pre-saved tensorflow model to load during evaluation."
+        "source": {
+          "oneOf": [
+            {"enum": ["online", ""]},
+            {"pattern": "^.*\\.h5$"}
+          ],
+          "description": "Online evaluation, pre-saved .h5 file for evaluation or undefined method of evaluation."
         }
       },
       "required": [
         "definition",
         "hyper_params",
-        "path"
+        "source"
       ],
       "additionalProperties": false
     },
@@ -49,12 +52,17 @@
       "properties": {
         "definition": {
           "$ref": "#/definitions/python-definition"
+        },
+        "hyper_params": {
+          "type": "object",
+          "description": "The hyper-parameters to use for this data loader."
         }
       },
       "required": [
-        "definition"
+        "definition",
+        "hyper_params"
       ],
-      "additionalProperties": true
+      "additionalProperties": false
     }
   },
   "required": [

@@ -6,6 +6,7 @@ import typing
 
 import pandas as pd
 import numpy as np
+import netCDF4
 import tensorflow as tf
 import tqdm
 
@@ -57,15 +58,12 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    data_loader = helpers.import_from(
-        config['data_loader']['definition']['module'],
-        config['data_loader']['definition']['name']
-    )(
+    data_loader = helpers.get_online_data_loader(
+        user_config_dict=config,
         dataframe=dataframe,
         target_datetimes=target_datetimes,
         stations=stations,
-        target_time_offsets=target_time_offsets,
-        config=config
+        target_time_offsets=target_time_offsets
     )
 
     ################################### MODIFY ABOVE ##################################
@@ -95,20 +93,15 @@ def prepare_model(
 
     ################################### MODIFY BELOW ##################################
 
-    from os import path
     from libs import helpers
 
     helpers.validate_user_config(config)
 
-    model_path = config['model']['path']
-
-    if not model_path:
-        model_path = '../model/best_model.h5'
-
-    if not path.exists(model_path):
-        raise FileNotFoundError(f'Error: The file {model_path} does not exist.')
-
-    model = tf.keras.models.load_model(model_path)
+    model = helpers.prepare_model(
+        user_config_dict=config,
+        stations=stations,
+        target_time_offsets=target_time_offsets
+    )
 
     ################################### MODIFY ABOVE ##################################
 

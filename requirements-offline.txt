@@ -10,3 +10,4 @@ pandas
 jsonschema
 tqdm
 h5netcdf
+netCDF4

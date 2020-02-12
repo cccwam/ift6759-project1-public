@@ -180,7 +180,7 @@ def compile_model(model, hparams, hp_optimizer):
     :return:
     """
 
-    model_instance = model()
+    model_instance = model
 
     # Workaround to get the right optimizer from class path
     # Because hparams only accept dtype string not class

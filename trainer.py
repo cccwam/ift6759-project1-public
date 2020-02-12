@@ -5,6 +5,7 @@ import argparse
 import typing
 import os
 
+import netCDF4
 import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
@@ -23,8 +24,8 @@ def main(
     helpers.validate_admin_config(admin_config_dict)
     helpers.validate_user_config(user_config_dict)
 
-    data_loader = helpers.get_online_data_loader(admin_config_dict, user_config_dict)
-    model = helpers.get_online_model(admin_config_dict, user_config_dict)
+    data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
+    model = helpers.get_online_model(user_config_dict, admin_config_dict)
 
     train_model(model, data_loader, tensorboard_tracking_folder)
     model.save(helpers.generate_model_name(user_config_dict))

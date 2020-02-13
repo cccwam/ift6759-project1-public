@@ -5,12 +5,15 @@ import argparse
 import typing
 import os
 
+# netCDF4 has to be imported before tensorflow because of hdf5 issues
 import netCDF4
 import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
 from libs import helpers
-from tools.dummy_dataset_generator import generate_dummy_dataset
+# from tools.dummy_dataset_generator import generate_dummy_dataset
+
+_ = netCDF4  # surpress unused module warning
 
 
 def main(
@@ -69,7 +72,7 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
         tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
         print("Start variation id:", tensorboard_log_dir)
         train_test_model(
-            dataset=data_loader.batch(16),  # TODO change this for the right dataset
+            dataset=data_loader,
             model=model,
             hp_optimizer=hp_optimizer,
             epochs=2,

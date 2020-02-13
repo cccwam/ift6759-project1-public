@@ -50,7 +50,7 @@ def test_dataloader(
 
     return model
 
-
+# TODO why we are giving stations ?
 def test_mlp(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],

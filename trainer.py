@@ -36,7 +36,7 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
     # Use only a maximum of 4 GPUs
     nb_gpus = tf.test.gpu_device_name()
 
-    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, len(nb_gpus)))])
+    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(1, len(nb_gpus)))])
     print("------------")
     print('Number of available GPU devices: {}'.format(nb_gpus))
     print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
@@ -69,10 +69,10 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
         tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
         print("Start variation id:", tensorboard_log_dir)
         train_test_model(
-            dataset=data_loader.batch(256),  # TODO change this for the right dataset
+            dataset=data_loader.batch(16),  # TODO change this for the right dataset
             model=model,
             hp_optimizer=hp_optimizer,
-            epochs=5,
+            epochs=2,
             tensorboard_log_dir=tensorboard_log_dir,
             hparams=hparams,
             mirrored_strategy=mirrored_strategy
@@ -119,9 +119,6 @@ def train_test_model(
                                            save_weights_only=True),
     ]
 
-    print(model.summary())
-    print(type(dataset))
-    print(dataset.element_spec)
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks)
 
 

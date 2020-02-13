@@ -64,7 +64,7 @@ def get_online_data_loader(
     if admin_config_dict:
         dataframe = admin_config_dict['dataframe_path']
         target_datetimes = admin_config_dict['target_datetimes']
-        stations = admin_config_dict['stations'],
+        stations = admin_config_dict['stations']
         target_time_offsets = admin_config_dict['target_time_offsets']
 
     return import_from(
@@ -197,7 +197,7 @@ def compile_model(model, hparams, hp_optimizer):
 
     model_instance.compile(
         optimizer=optimizer_instance,
-        loss=tf.keras.losses.mean_squared_error,
+        loss=tf.keras.losses.MeanSquaredError(),
         metrics=[tf.keras.metrics.RootMeanSquaredError()]
     )
     return model_instance

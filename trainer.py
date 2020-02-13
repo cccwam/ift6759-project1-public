@@ -11,7 +11,7 @@ import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
 from libs import helpers
-from tools.dummy_dataset_generator import generate_dummy_dataset
+# from tools.dummy_dataset_generator import generate_dummy_dataset
 
 _ = netCDF4  # surpress unused module warning
 

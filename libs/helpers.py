@@ -1,9 +1,10 @@
 import json
 import jsonschema
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import sys
+import pickle
 from importlib import import_module
 
 
@@ -62,10 +63,12 @@ def get_online_data_loader(
     :return: An instance of user_config_dict['model']['definition']['module'].['name']
     """
     if admin_config_dict:
-        dataframe = admin_config_dict['dataframe_path']
-        target_datetimes = admin_config_dict['target_datetimes']
+        dataframe_path = admin_config_dict['dataframe_path']
+        with open(dataframe_path, 'rb') as df_file_handler:
+            dataframe = pickle.load(df_file_handler)
+        target_datetimes = [datetime.strptime(s, '%Y-%m-%dT%H:%M:%S') for s in admin_config_dict['target_datetimes']]
         stations = admin_config_dict['stations']
-        target_time_offsets = admin_config_dict['target_time_offsets']
+        target_time_offsets = [timedelta(hours=h) for h in [0, 1, 3, 6]]  # hard coded
 
     return import_from(
         user_config_dict['data_loader']['definition']['module'],
@@ -101,7 +104,7 @@ def get_online_model(
     """
     if admin_config_dict:
         stations = admin_config_dict['stations'],
-        target_time_offsets = admin_config_dict['target_time_offsets']
+        target_time_offsets = [timedelta(hours=h) for h in [0, 1, 3, 6]]  # hard coded
 
     return import_from(
         user_config_dict['model']['definition']['module'],

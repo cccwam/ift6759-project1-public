@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import netCDF4
 import tensorflow as tf
+import libs.helpers 
 
 
 def data_loader_images(
@@ -64,8 +65,12 @@ def data_loader_images(
         for i, target_datenum in enumerate(target_datenums):
             indices_in_nc[i] = np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
-        # TODO incorporate dataframe preprocessing
-        # dataframe = something(dataframe)
+        # Remove night values and nan NCDF paths
+        dataframe = libs.helpers.removeNightValues(dataframe)
+        dataframe = libs.helpers.removeNullPath(dataframe)
+
+        # TODO take care of nan GHI values
+        #dataframe = libs.helpers.fillGHI(dataframe)
 
         # Generate batch
         # TODO what are the implications of this change on performance

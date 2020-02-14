@@ -34,8 +34,15 @@
         },
         "source": {
           "oneOf": [
-            {"enum": ["online", ""]},
-            {"pattern": "^.*\\.tf$"}
+            {
+              "enum": [
+                "online",
+                ""
+              ]
+            },
+            {
+              "pattern": "^.*\\.tf$"
+            }
           ],
           "description": "Online evaluation, pre-saved .h5 file for evaluation or undefined method of evaluation."
         }
@@ -73,6 +80,9 @@
             "lr_rate": {
               "type": "array"
             },
+            "batch_size": {
+              "type": "array"
+            },
             "epochs": {
               "type": "array"
             },
@@ -83,6 +93,7 @@
           "required": [
             "lr_rate",
             "epochs",
+            "batch_size",
             "patience"
           ],
           "additionalProperties": false

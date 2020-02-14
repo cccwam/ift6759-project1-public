@@ -4,7 +4,9 @@
       "module": "libs.models.convlstm",
       "name": "my_conv_lstm_model_builder"
     },
-    "hyper_params": {},
+    "hyper_params": {
+      "dropout": [0, 0.25]
+    },
     "source": ""
   },
   "data_loader": {
@@ -20,6 +22,7 @@
     "hyper_params": {
       "lr_rate": [0.03],
       "epochs": [20],
+      "batch_size": [32],
       "patience": [5]
     }
   }

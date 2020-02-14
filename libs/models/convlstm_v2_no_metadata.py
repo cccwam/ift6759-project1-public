@@ -77,11 +77,10 @@ def my_conv_lstm_model_builder(
         metadata_input = tf.keras.Input(shape=(8,), name='metadata')
 
         x = my_cnn_encoder(img_input)
-        all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
+        all_inputs = x # tf.keras.layers.Concatenate()([x, metadata_input])
         x = my_classifier(all_inputs)
 
         return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel')
-
 
     model_hparams = config["hyper_params"]
 
@@ -91,7 +90,7 @@ def my_conv_lstm_model_builder(
         my_cnn_encoder.summary()
         print("")
 
-    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8,
+    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1],
                     dropout=model_hparams["dropout"])
     if verbose:
         print("")

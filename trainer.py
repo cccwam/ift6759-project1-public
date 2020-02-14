@@ -24,97 +24,115 @@ def main(
     admin_config_dict = helpers.load_dict(admin_config_path)
     user_config_dict = helpers.load_dict(user_config_path)
     validation_config_dict = helpers.load_dict(admin_config_path.replace('_train.json', '_validation.json'))
-    trainer_dict = user_config_dict['trainer']
 
     helpers.validate_admin_config(admin_config_dict)
     helpers.validate_user_config(user_config_dict)
 
     train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
     valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
-    model = helpers.get_online_model(user_config_dict, admin_config_dict)
-
-    train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder)
-    model.save(helpers.generate_model_name(user_config_dict))
 
 
-def train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder):
-    # Activate this for multi gpu
+    # Multi GPU setup
     nb_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
-    trainer_hyper_params = trainer_dict['hyper_params']
-    print("Trainer hyper params:")
-    print(trainer_hyper_params)
-    print(valid_data_loader)
-
-    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(1, len(nb_gpus)))])
+    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, nb_gpus))])
     print("------------")
     print('Number of available GPU devices: {}'.format(nb_gpus))
     print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
     print("------------")
 
-    # Multi GPU setup
-    if mirrored_strategy is not None and mirrored_strategy.num_replicas_in_sync > 1:
-        with mirrored_strategy.scope():
-            model = helpers.get_online_model(user_config_dict, admin_config_dict)
-    else:
-        model = helpers.get_online_model(user_config_dict, admin_config_dict)
-
-    train_model(model, train_data_loader, tensorboard_tracking_folder,
-                mirrored_strategy=mirrored_strategy,
-                 validation_dataset=valid_data_loader)
+    # Main training loop
+    train_models(user_config_dict=user_config_dict,
+                admin_config_dict=admin_config_dict,
+                train_data_loader=train_data_loader, valid_data_loader=valid_data_loader,
+                tensorboard_tracking_folder=tensorboard_tracking_folder,
+                mirrored_strategy=mirrored_strategy)
 
 
-def train_model(model,
-                data_loader,
-                tensorboard_tracking_folder,
-                mirrored_strategy,
-                validation_dataset=None):
+def train_models(user_config_dict, admin_config_dict,
+                train_data_loader, valid_data_loader,
+                tensorboard_tracking_folder, mirrored_strategy):
 
+    # Retrieve the configuration to create the right model and to keep track on tensorboard
+    model_dict = user_config_dict['model']
+    print()
+    print("Model dict:", model_dict)
+    print()
 
-    # Create a unique id for the experiment for Tensorboard
-    tensorboard_exp_id = helpers.get_tensorboard_experiment_id(
-        experiment_name="dummy_model",
-        tensorboard_tracking_folder=tensorboard_tracking_folder
-    )
+    data_loader_dict = user_config_dict['data_loader']
+    print()
+    print("Data loader dict:", data_loader_dict)
+    print()
+
+    trainer_hyper_params = user_config_dict['trainer']['hyper_params']
+    print()
+    print("Trainer hyper params:", trainer_hyper_params)
+    print()
 
     # Tensorboard logger for the different hyperparameters
     # Keep model and dataloader class names
-    hp_model = hp.HParam('model_class', hp.Discrete([model.__class__.__name__]))
-    hp_dataloader = hp.HParam('dataloader_class', hp.Discrete([data_loader.__class__.__name__]))
-    # Hyperparameters search for the training loop
-    hp_epochs = hp.HParam('epochs', hp.Discrete([100]))
-    hp_learning_rate = hp.HParam('learning_rate', hp.Discrete([1e-3, 3e-3]))
-    hp_patience = hp.HParam('patience', hp.Discrete([2]))
+    model_name = model_dict["definition"]["module"].split(".")[-1] + "." + model_dict["definition"]["name"]
+    hp_model = hp.HParam('model_class', hp.Discrete([model_name]))
+    data_loader_name = data_loader_dict["definition"]["module"].split(".")[-1]  + "." + data_loader_dict["definition"]["name"]
+    hp_dataloader = hp.HParam('dataloader_class', hp.Discrete([data_loader_name]))
 
-    data_loader = data_loader.batch(32)
-    validation_dataset = validation_dataset.batch(32)
+    # Create a unique id for the experiment for Tensorboard
+    tensorboard_exp_id = helpers.get_tensorboard_experiment_id(
+        experiment_name=model_name + "_" + data_loader_name,
+        tensorboard_tracking_folder=tensorboard_tracking_folder
+    )
+
+    # Hyperparameters search for the training loop
+    hp_batch_size = hp.HParam('batch_size', hp.Discrete(trainer_hyper_params["batch_size"]))
+    hp_epochs = hp.HParam('epochs', hp.Discrete(trainer_hyper_params["epochs"]))
+    hp_dropout = hp.HParam('dropout', hp.Discrete(model_dict['hyper_params']["dropout"]))
+    hp_learning_rate = hp.HParam('learning_rate', hp.Discrete(trainer_hyper_params["lr_rate"]))
+    hp_patience = hp.HParam('patience', hp.Discrete(trainer_hyper_params["patience"]))
+
+    data_loader = train_data_loader.batch(hp_batch_size.domain.values[0])
+    validation_dataset = valid_data_loader.batch(hp_batch_size.domain.values[0])
 
     # Main loop to iterate over all possible hyperparameters
     variation_num = 0
     for epochs in hp_epochs.domain.values:
         for learning_rate in hp_learning_rate.domain.values:
-            for patience in hp_patience.domain.values:
-                hparams = {
-                    hp_model: hp_model.domain.values[0],
-                    hp_dataloader: hp_dataloader.domain.values[0],
-                    hp_epochs: epochs,
-                    hp_learning_rate: learning_rate,
-                    hp_patience: patience,
-                }
-                tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
-                print("Start variation id:", tensorboard_log_dir)
-                train_test_model(
-                    dataset=data_loader,
-                    model=model,
-                    tensorboard_log_dir=tensorboard_log_dir,
-                    hparams=hparams,
-                    mirrored_strategy=mirrored_strategy,
-                    validation_dataset=validation_dataset,
-                    epochs=epochs,
-                    learning_rate=learning_rate,
-                    patience=patience
-                )
-                variation_num += 1
-                break
+            for dropout in hp_dropout.domain.values:
+                for patience in hp_patience.domain.values:
+                    hparams = {
+                        hp_batch_size: hp_batch_size.domain.values[0],
+                        hp_model: hp_model.domain.values[0],
+                        hp_dataloader: hp_dataloader.domain.values[0],
+                        hp_epochs: epochs,
+                        hp_dropout: dropout,
+                        hp_learning_rate: learning_rate,
+                        hp_patience: patience,
+                    }
+
+                    # TODO here add dropout here
+                    if mirrored_strategy is not None and mirrored_strategy.num_replicas_in_sync > 1:
+                        with mirrored_strategy.scope():
+                            model = helpers.get_online_model(user_config_dict, admin_config_dict)
+                    else:
+                        model = helpers.get_online_model(user_config_dict, admin_config_dict)
+
+                    tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
+                    print("Start variation id:", tensorboard_log_dir)
+                    train_test_model(
+                        dataset=data_loader,
+                        model=model,
+                        tensorboard_log_dir=tensorboard_log_dir,
+                        hparams=hparams,
+                        mirrored_strategy=mirrored_strategy,
+                        validation_dataset=validation_dataset,
+                        epochs=epochs,
+                        learning_rate=learning_rate,
+                        patience=patience
+                    )
+                    variation_num += 1
+
+
+
+    # Save final model
+    model.save(helpers.generate_model_name(user_config_dict))
 
 
 def train_test_model(

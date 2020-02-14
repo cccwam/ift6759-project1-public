@@ -7,10 +7,11 @@ import typing
 import datetime
 
 
-def my_conv_lstm_model_builder(
+def my_model_builder(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
+        model_hparams,
         verbose=True):
     """
         Builder function
@@ -23,29 +24,30 @@ def my_conv_lstm_model_builder(
             This function return the CNN encoder module, needed to extract features map.
         :return: Keras model containing the CNN encoder module
         """
-        encoder_input = tf.keras.Input(shape=(None, 5, 50, 50), name='original_img')
+        encoder_input = tf.keras.Input(shape=(5, 5, 50, 50), name='original_img')
+        encoder_input = tf.keras.layers.Reshape(target_shape=(5 * 5, 50, 50))(encoder_input)
 
         x = tf.keras.layers.BatchNormalization()(encoder_input)
-        x = tf.keras.layers.ConvLSTM2D(filters=128, kernel_size=(5, 5),
+        x = tf.keras.layers.Conv2D(filters=128, kernel_size=(5, 5),
                                        data_format='channels_first',
-                                       padding='same', return_sequences=True)(encoder_input)
+                                       padding='same')(encoder_input)
 
         x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.ConvLSTM2D(filters=64, kernel_size=(3, 3),
+        x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3),
                                        data_format='channels_first',
-                                       padding='same', return_sequences=True)(x)
+                                       padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.ConvLSTM2D(filters=64, kernel_size=(3, 3),
+        x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3),
                                        data_format='channels_first',
-                                       padding='same', return_sequences=False)(x)
+                                       padding='same')(x)
 
         x = tf.keras.layers.GlobalAveragePooling2D(data_format='channels_first')(x)
         encoder_output = tf.keras.layers.Flatten()(x)
 
         return tf.keras.Model(encoder_input, encoder_output, name='encoder')
 
-    def my_classifier(input_size, dropout):
+    def my_classifier(input_size):
         """
             This function return the classification head module.
         :param my_cnn_encoder: Encoder which will extract features map. Used to get the output size.
@@ -54,18 +56,18 @@ def my_conv_lstm_model_builder(
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
 
         x = tf.keras.layers.Dense(128, activation=tf.keras.activations.relu)(clf_input)
-        x = tf.keras.layers.Dropout(dropout)(x)
+        x = tf.keras.layers.Dropout(0.25)(x)
         x = tf.keras.layers.BatchNormalization()(x)
 
         x = tf.keras.layers.Dense(128, activation=tf.keras.activations.relu)(x)
-        x = tf.keras.layers.Dropout(dropout)(x)
+        x = tf.keras.layers.Dropout(0.25)(x)
         x = tf.keras.layers.BatchNormalization()(x)
 
         x = tf.keras.layers.Dense(4, activation=None)(x)
 
         return tf.keras.Model(clf_input, x, name='classifier')
 
-    def my_convlstm_model(my_cnn_encoder, my_classifier):
+    def my_convlstm_model(my_cnn_encoder, my_classifier, hparams):
         """
             This function aggregates the all modules for the model.
         :param my_cnn_encoder: Encoder which will extract features map.
@@ -81,9 +83,6 @@ def my_conv_lstm_model_builder(
         x = my_classifier(all_inputs)
 
         return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel')
-
-
-    model_hparams = config["hyper_params"]
 
     my_cnn_encoder = my_cnn_encoder()
     if verbose:

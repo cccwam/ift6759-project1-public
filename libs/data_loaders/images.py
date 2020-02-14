@@ -278,10 +278,7 @@ def data_loader_images_multimodal_FM(
 
             # Generate batch
             for i in range(0, len(target_datetimes)):
-                # ToDo: how to deal with the last batch with different size
-                # if len(batch_of_datetimes) != batch_size:
-                #     continue
-                # Datetime metadata
+
                 metadata = np.zeros([8],
                                     dtype=np.float32)
                 metadata[0] = target_datetimes[i].year

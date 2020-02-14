@@ -4,7 +4,9 @@
       "module": "libs.models.convlstm_v2",
       "name": "my_conv_lstm_model_builder"
     },
-    "hyper_params": {},
+    "hyper_params": {
+      "dropout": [0, 0.25]
+    },
     "source": ""
   },
   "data_loader": {
@@ -14,6 +16,14 @@
     },
     "hyper_params": {
       "admin_name": "daily_random_01_validation"
+    }
+  },
+    "trainer": {
+    "hyper_params": {
+      "lr_rate": [3e-2, 3e-3],
+      "epochs": [100],
+      "batch_size": [32],
+      "patience": [5]
     }
   }
 }

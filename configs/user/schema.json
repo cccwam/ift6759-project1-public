@@ -63,6 +63,35 @@
         "hyper_params"
       ],
       "additionalProperties": false
+    },
+    "trainer": {
+      "type": "object",
+      "properties": {
+        "hyper_params": {
+          "type": "object",
+          "properties": {
+            "lr_rate": {
+              "type": "array"
+            },
+            "epochs": {
+              "type": "array"
+            },
+            "patience": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "lr_rate",
+            "epochs",
+            "patience"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "hyper_params"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

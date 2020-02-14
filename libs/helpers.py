@@ -39,6 +39,7 @@ def get_online_data_loader(
         target_datetimes=None,
         stations=None,
         target_time_offsets=None,
+        data_mode='train'
 ):
     """
     Get an online version of the data loader defined in user_config_dict
@@ -78,7 +79,8 @@ def get_online_data_loader(
         target_datetimes=target_datetimes,
         stations=stations,
         target_time_offsets=target_time_offsets,
-        config=user_config_dict
+        config=user_config_dict,
+        data_mode=data_mode
     )
 
 
@@ -156,7 +158,7 @@ def prepare_model(
 
 
 def generate_model_name(user_config_dict):
-    return "{}.{}.{}.h5".format(
+    return "{}.{}.{}.tf".format(
         user_config_dict['model']['definition']['module'],
         user_config_dict['model']['definition']['name'],
         uuid.uuid4().hex
@@ -199,7 +201,7 @@ def compile_model(model, hparams, hp_optimizer):
     optimizer_instance = getattr(module, class_name)()
 
     model_instance.compile(
-        optimizer=optimizer_instance,
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
         loss=tf.keras.losses.MeanSquaredError(),
         metrics=[tf.keras.metrics.RootMeanSquaredError()]
     )

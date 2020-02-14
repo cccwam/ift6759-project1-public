@@ -75,6 +75,31 @@ def lightweight_year_split(
     return np.array(resulting_splits)
 
 
+def hourly_split(
+        years_splits=(2010, 2014, 2015, 2016), seed=987):
+    random.seed(seed)
+    resulting_splits = []
+
+    for i in range(len(years_splits)-1):
+        year_start = date(years_splits[i], 1, 1)
+        year_end = date(years_splits[i+1], 1, 1)
+        current_samples = []
+        for current_day in date_range(year_start, year_end):
+            for new_hour in range(0, 24):
+                current_samples.append(
+                    datetime(
+                        year=current_day.year,
+                        month=current_day.month,
+                        day=current_day.day,
+                        hour=new_hour,
+                        minute=random.choice([0, 15, 30, 45])
+                    ).strftime('%Y-%m-%dT%H:%M:%S')
+                )
+        resulting_splits.append(current_samples)
+
+    return np.array(resulting_splits)
+
+
 def generate_params(catalog_file=default_catalog_path,
                     method='lightweight_year_split', **kwargs):
     """Generate parameters for config file based on a given method
@@ -113,6 +138,9 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--label', type=str,
                         default='project1_cfg_{0}.json',
                         help='label for the parameters file, with a {0} placeholder')
+    parser.add_argument('-m', '--method', type=str,
+                        default='lightweight_year_split',
+                        help='method to use')
     args = parser.parse_args()
-    gparams = generate_params(args.catalog_path)
+    gparams = generate_params(args.catalog_path, method=args.method)
     write_cfg_file(args.label, gparams)

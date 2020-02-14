@@ -71,7 +71,7 @@ def test_mlp(
 
     encoder_input = tf.keras.Input(batch_size=256, shape=(5, 5, 50, 50), name='original_img')
     x = tf.keras.layers.Flatten()(encoder_input)
-    x = tf.keras.layers.Dense(128, activation=tf.nn.relu)(x)
+    x = tf.keras.layers.Dense(512, activation=tf.nn.relu)(x)
     encoder_output = tf.keras.layers.Dense(len(target_time_offsets))(x)
 
     return tf.keras.Model(encoder_input, encoder_output, name='encoder')
@@ -145,3 +145,54 @@ def test_mlp(
     # model = TestMLP(target_time_offsets)
     #
     # return model
+
+
+def test_multimodal(
+        stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
+        target_time_offsets: typing.List[datetime.timedelta],
+        config: typing.Dict[typing.AnyStr, typing.Any],
+):
+    """This function should be modified in order to prepare & return your own prediction model.
+
+    Args:
+        stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
+        target_time_offsets: the list of timedeltas to predict GHIs for (by definition: [T=0, T+1h, T+3h, T+6h]).
+        config: configuration dictionary holding any extra parameters that might be required by the user. These
+            parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
+            such a JSON file is completely optional, and this argument can be ignored if not needed.
+
+    Returns:
+        A model
+    """
+
+    class MultimodalTest(tf.keras.Model):
+        def __init__(self):
+            super(MultimodalTest, self).__init__()
+            self.c1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
+            self.mp1 = tf.keras.layers.MaxPooling2D((2, 2))
+            self.c2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
+            self.mp2 = tf.keras.layers.MaxPooling2D((2, 2))
+            self.flatten = tf.keras.layers.Flatten()
+            self.d1 = tf.keras.layers.Dense(1024, activation='relu')
+            self.d2 = tf.keras.layers.Dense(1024, activation='relu')
+            self.d3 = tf.keras.layers.Dense(256, activation='relu')
+            self.d4 = tf.keras.layers.Dense(4)
+
+        def call(self, inputs, training=False):
+            x = self.c1(inputs[0])
+            x = self.mp1(x)
+            x = self.c2(x)
+            x = self.mp2(x)
+            x = self.flatten(x)
+            x = self.d1(tf.concat([x, inputs[1]], axis=1))
+            x = self.d2(x)
+            x = self.d3(x)
+            x = self.d4(x)
+            return x
+            # x = self.flatten(inputs[0])
+            # x = self.d1(x)
+            # x = self.d2(tf.concat([x, inputs[1]], axis=1))
+            # x = self.d3(x)
+            # return self.d4(x)
+
+    return MultimodalTest()

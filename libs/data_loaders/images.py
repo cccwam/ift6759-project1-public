@@ -1,6 +1,7 @@
 import os
 import datetime
 import typing
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -135,13 +136,15 @@ def data_loader_images_multimodal(
             if data_mode == 'validation':
                 data_file = data_file.replace('_train_', '_validation_')
 
-            nc = netCDF4.Dataset(
-                os.path.join('/project/cq-training-1/project1/teams/team03/data',
-                             data_file), 'r')
+            nc_in_slurm = os.path.join(os.environ['SLURM_TMPDIR'], data_file)
+            nc_in_project = os.path.join('/project/cq-training-1/project1/teams/team03/data', data_file)
+            if not os.path.isfile(nc_in_slurm):
+                shutil.copy(nc_in_project, nc_in_slurm)
+            nc = netCDF4.Dataset(nc_in_slurm, 'r')
             nc_var = nc.variables['data']
             # Loading all data in memory greatly speeds up things, but if we move to much larger
             # sample size and crop size this might need to be done differently.
-            nc_var_data = nc_var[:, :, :, :, :]
+            # nc_var_data = nc_var[:, :, :, :, :]
             nc_time = nc.variables['time']
 
             # match target datenums with indices in the netcdf file, we need to allow for
@@ -155,12 +158,21 @@ def data_loader_images_multimodal(
                     np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
             # Generate batch
+            # Attempt at optimizing data io
+            nci_min = 0
+            nci_max = 10000
+            nc_var_data = nc_var[nci_min:nci_max, :, :, :, :]
             for i in range(0, len(target_datetimes), batch_size):
                 batch_of_datetimes = target_datetimes[i:i + batch_size]
                 # ToDo: how to deal with the last batch with different size
                 # if len(batch_of_datetimes) != batch_size:
                 #     continue
                 batch_of_nc_indices = indices_in_nc[i:i + batch_size]
+                if batch_of_nc_indices.max() >= nci_max:
+                    nci_min = batch_of_nc_indices.min()
+                    nci_max = nci_min + 10000
+                    nc_var_data = nc_var[nci_min:nci_max, :, :, :, :]
+                batch_of_nc_indices -= nci_min
                 # Datetime metadata
                 metadata = np.zeros([len(batch_of_datetimes), 8],
                                     dtype=np.float32)

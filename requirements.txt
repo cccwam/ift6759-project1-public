@@ -15,3 +15,6 @@ lz4
 opencv-python
 pyyaml
 h5py
+pvlib
+tables
+

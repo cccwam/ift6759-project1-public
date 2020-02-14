@@ -63,7 +63,8 @@ def prepare_dataloader(
         dataframe=dataframe,
         target_datetimes=target_datetimes,
         stations=stations,
-        target_time_offsets=target_time_offsets
+        target_time_offsets=target_time_offsets,
+        data_mode='validation'
     )
 
     ################################### MODIFY ABOVE ##################################

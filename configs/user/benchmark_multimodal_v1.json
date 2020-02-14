@@ -5,7 +5,7 @@
       "name": "test_multimodal"
     },
     "hyper_params": {},
-    "source": "libs.models.debug.test_multimodal.2a0e0518b4c048c7be04c4b671c370c3.tf"
+    "source": "libs.models.debug.test_multimodal.e3a207fdce6e46b38fd9c500bedb1b5e.tf"
   },
   "data_loader": {
     "definition": {

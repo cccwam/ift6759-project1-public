@@ -5,11 +5,15 @@ import argparse
 import typing
 import os
 
+# netCDF4 has to be imported before tensorflow because of hdf5 issues
+import netCDF4
 import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
 from libs import helpers
-from tools.dummy_dataset_generator import generate_dummy_dataset
+# from tools.dummy_dataset_generator import generate_dummy_dataset
+
+_ = netCDF4  # surpress unused module warning
 
 
 def main(
@@ -19,14 +23,17 @@ def main(
 ):
     admin_config_dict = helpers.load_dict(admin_config_path)
     user_config_dict = helpers.load_dict(user_config_path)
+    validation_config_dict = helpers.load_dict(admin_config_path.replace('_train.json', '_validation.json'))
 
     helpers.validate_admin_config(admin_config_dict)
     helpers.validate_user_config(user_config_dict)
 
-    data_loader = helpers.get_online_data_loader(admin_config_dict, user_config_dict)
-    model = helpers.get_online_model(admin_config_dict, user_config_dict)
+    data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
+    validation_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
+    model = helpers.get_online_model(user_config_dict, admin_config_dict)
 
-    train_model(model, data_loader, tensorboard_tracking_folder)
+    train_simple(model, data_loader, tensorboard_tracking_folder,
+                 validation_loader=validation_loader)
     model.save(helpers.generate_model_name(user_config_dict))
 
 
@@ -35,7 +42,7 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
     # Use only a maximum of 4 GPUs
     nb_gpus = tf.test.gpu_device_name()
 
-    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, len(nb_gpus)))])
+    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(1, len(nb_gpus)))])
     print("------------")
     print('Number of available GPU devices: {}'.format(nb_gpus))
     print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
@@ -68,15 +75,16 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
         tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
         print("Start variation id:", tensorboard_log_dir)
         train_test_model(
-            dataset=generate_dummy_dataset(batch_size=16),  # TODO change this for the right dataset
+            dataset=data_loader,
             model=model,
             hp_optimizer=hp_optimizer,
-            epochs=5,
+            epochs=20,
             tensorboard_log_dir=tensorboard_log_dir,
             hparams=hparams,
             mirrored_strategy=mirrored_strategy
         )
         variation_num += 1
+        break
 
 
 def train_test_model(
@@ -119,6 +127,20 @@ def train_test_model(
     ]
 
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks)
+
+
+def train_simple(model, data_loader, tensorboard_tracking_folder,
+                 validation_loader=None):
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+                  loss=tf.keras.losses.MeanSquaredError())
+    earlystop_callback = tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss', min_delta=0.001,
+        patience=5)
+    model.fit(data_loader,
+              epochs=100,
+              callbacks=[earlystop_callback],
+              validation_data=validation_loader,
+              shuffle=False)
 
 
 if __name__ == '__main__':

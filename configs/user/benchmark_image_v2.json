@@ -1,0 +1,19 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.debug",
+      "name": "test_mlp"
+    },
+    "hyper_params": {},
+    "source": "libs.models.debug.test_mlp.dd9a845189304121b29fea94b0de3c0b.h5"
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images"
+    },
+    "hyper_params": {
+      "admin_name": "daily_random_01_validation"
+    }
+  }
+}

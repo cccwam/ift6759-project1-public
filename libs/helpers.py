@@ -176,32 +176,20 @@ def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
     return os.path.join(tensorboard_tracking_folder, model_sub_folder)
 
 
-def compile_model(model, hparams, hp_optimizer):
+def compile_model(model, learning_rate):
     """
         Helper function to compile a new model at each variation of the experiment
     :param model:
     :param hparams:
-    :param hp_optimizer:
     :return:
     """
 
     model_instance = model
 
-    # Workaround to get the right optimizer from class path
-    # Because hparams only accept dtype string not class
-    # See https://stackoverflow.com/questions/3451779/how-to-dynamically-create-an-instance-of-a-class-in-python
-    class_name = hparams[hp_optimizer].rsplit('.', 1)
-    if len(class_name) > 1:
-        module_path, class_name = class_name
-        module_path = module_path.replace("tf", "tensorflow")
-        module = import_module(module_path)
-    else:
-        class_name = class_name[0]
-        module = sys.modules[__name__]
-    optimizer_instance = getattr(module, class_name)()
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     model_instance.compile(
-        optimizer=optimizer_instance,
+        optimizer=optimizer,
         loss=tf.keras.losses.MeanSquaredError(),
         metrics=[tf.keras.metrics.RootMeanSquaredError()]
     )

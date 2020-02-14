@@ -25,15 +25,27 @@ def my_conv_lstm_model_builder(
         """
         encoder_input = tf.keras.Input(shape=(None, 5, 50, 50), name='original_img')
 
-        x = tf.keras.layers.ConvLSTM2D(filters=40, kernel_size=(3, 3),
-                                       data_format='channels_last',
+        x = tf.keras.layers.ConvLSTM2D(filters=20, kernel_size=(3, 3),
+                                       data_format='channels_first',
                                        padding='same', return_sequences=True)(encoder_input)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.ConvLSTM2D(filters=40, kernel_size=(3, 3),
-                                       data_format='channels_last',
+                                       data_format='channels_first',
                                        padding='same', return_sequences=True)(x)
         x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.GlobalAveragePooling3D()(x)
+        x = tf.keras.layers.ReLU()(x)
+
+        x = tf.keras.layers.ConvLSTM2D(filters=80, kernel_size=(3, 3),
+                                       data_format='channels_first',
+                                       padding='same', return_sequences=True)(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.ConvLSTM2D(filters=160, kernel_size=(3, 3),
+                                       data_format='channels_first',
+                                       padding='same', return_sequences=False)(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.ReLU()(x)
+
+        x = tf.keras.layers.GlobalAveragePooling2D(data_format='channels_first')(x)
         encoder_output = tf.keras.layers.Flatten()(x)
 
         return tf.keras.Model(encoder_input, encoder_output, name='encoder')
@@ -46,7 +58,13 @@ def my_conv_lstm_model_builder(
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
 
-        x = tf.keras.layers.Dense(4, activation=None)(clf_input)
+        x = tf.keras.layers.Dense(128, activation=tf.keras.activations.relu)(clf_input)
+        x = tf.keras.layers.Dropout(0.25)(x)
+
+        x = tf.keras.layers.Dense(128, activation=tf.keras.activations.relu)(x)
+        x = tf.keras.layers.Dropout(0.25)(x)
+
+        x = tf.keras.layers.Dense(4, activation=None)(x)
 
         return tf.keras.Model(clf_input, x, name='classifier')
 

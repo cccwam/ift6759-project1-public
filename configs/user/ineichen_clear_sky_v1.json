@@ -7,12 +7,13 @@
     "hyper_params": {
       "rmse_test_scale_factor": 1.25
     },
-    "path": ""
+    "source": "online"
   },
   "data_loader": {
     "definition": {
       "module": "libs.data_loaders.baselines",
       "name": "data_loader_v1"
-    }
+    },
+    "hyper_params": {}
   }
 }

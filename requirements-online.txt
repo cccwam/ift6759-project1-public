@@ -1,7 +1,0 @@
-# Notes:
-#   The following dependencies are not available on helios compute nodes
-
-lz4
-opencv-python
-pyyaml
-h5py

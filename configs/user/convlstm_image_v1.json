@@ -1,0 +1,19 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.convlstm",
+      "name": "my_conv_lstm_model_builder"
+    },
+    "hyper_params": {},
+    "source": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images"
+    },
+    "hyper_params": {
+      "admin_name": "daily_random_01_validation"
+    }
+  }
+}

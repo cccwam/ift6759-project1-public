@@ -7,4 +7,4 @@ class MySGD_with_lower_learning_rate(tf.keras.optimizers.SGD):
         NOT TO USE
     """
     def __index__(self):
-        super(MySGD_with_lower_learning_rate, self).__init__(learning_rate=0.001)
+        super(MySGD_with_lower_learning_rate, self).__init__(learning_rate=0.001, clipnorm=1.0)

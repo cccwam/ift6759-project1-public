@@ -24,20 +24,28 @@ def main(
     admin_config_dict = helpers.load_dict(admin_config_path)
     user_config_dict = helpers.load_dict(user_config_path)
     validation_config_dict = helpers.load_dict(admin_config_path.replace('_train.json', '_validation.json'))
+    trainer_dict = user_config_dict['trainer']
 
     helpers.validate_admin_config(admin_config_dict)
     helpers.validate_user_config(user_config_dict)
 
-    data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
-    validation_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
+    train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
+    valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
+    model = helpers.get_online_model(user_config_dict, admin_config_dict)
+
+    train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder)
+    model.save(helpers.generate_model_name(user_config_dict))
 
 
+def train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder):
     # Activate this for multi gpu
     nb_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
+    trainer_hyper_params = trainer_dict['hyper_params']
+    print("Trainer hyper params:")
+    print(trainer_hyper_params)
+    print(valid_data_loader)
 
-    # Use only a maximum of 2 GPUs
-    # No apparent benefit with more than 2 GPUs
-    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, nb_gpus))])
+    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(1, len(nb_gpus)))])
     print("------------")
     print('Number of available GPU devices: {}'.format(nb_gpus))
     print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
@@ -50,10 +58,9 @@ def main(
     else:
         model = helpers.get_online_model(user_config_dict, admin_config_dict)
 
-    train_model(model, data_loader, tensorboard_tracking_folder,
+    train_model(model, train_data_loader, tensorboard_tracking_folder,
                 mirrored_strategy=mirrored_strategy,
-                 validation_dataset=validation_loader)
-    model.save(helpers.generate_model_name(user_config_dict))
+                 validation_dataset=valid_data_loader)
 
 
 def train_model(model,

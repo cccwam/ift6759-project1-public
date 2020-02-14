@@ -15,5 +15,12 @@
     "hyper_params": {
       "admin_name": "daily_random_01_train"
     }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [0.03],
+      "epochs": [20],
+      "patience": [5]
+    }
   }
 }

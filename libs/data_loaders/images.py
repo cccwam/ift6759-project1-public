@@ -70,7 +70,7 @@ def data_loader_images(
         dataframe = libs.helpers.removeNullPath(dataframe)
 
         # TODO take care of nan GHI values
-        #dataframe = libs.helpers.fillGHI(dataframe)
+        # dataframe = libs.helpers.fillGHI(dataframe)
 
         # Generate batch
         # TODO what are the implications of this change on performance

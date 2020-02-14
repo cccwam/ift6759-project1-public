@@ -152,7 +152,7 @@ def data_loader_images_multimodal(
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
                 indices_in_nc[i] = \
-                np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
+                    np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
             # Generate batch
             for i in range(0, len(target_datetimes), batch_size):
@@ -204,7 +204,7 @@ def data_loader_images_multimodal(
 
     return tf.data.Dataset.from_generator(
         image_generator, ((tf.float32, tf.float32), tf.float32),
-        output_shapes=(((tf.TensorShape([None, 25, 50, 50]),
-                         tf.TensorShape([None, 8])),
-                         tf.TensorShape([None, 4])))
+        output_shapes=(
+            ((tf.TensorShape([None, 25, 50, 50]), tf.TensorShape([None, 8])),
+             tf.TensorShape([None, 4])))
     )

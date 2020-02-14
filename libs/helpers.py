@@ -201,7 +201,7 @@ def compile_model(model, hparams, hp_optimizer):
     optimizer_instance = getattr(module, class_name)()
 
     model_instance.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+        optimizer=optimizer_instance,
         loss=tf.keras.losses.MeanSquaredError(),
         metrics=[tf.keras.metrics.RootMeanSquaredError()]
     )

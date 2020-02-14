@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import netCDF4
 import tensorflow as tf
-import libs.helpers 
+import libs.helpers
 
 
 def data_loader_images(
@@ -66,11 +66,11 @@ def data_loader_images(
             indices_in_nc[i] = np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
         # Remove night values and nan NCDF paths
-        dataframe = libs.helpers.removeNightValues(dataframe)
-        dataframe = libs.helpers.removeNullPath(dataframe)
+        dataframe_preprocessed = libs.helpers.removeNightValues(dataframe)
+        dataframe_preprocessed = libs.helpers.removeNullPath(dataframe_preprocessed)
 
         # TODO take care of nan GHI values
-        # dataframe = libs.helpers.fillGHI(dataframe)
+        # dataframe_preprocessed = libs.helpers.fillGHI(dataframe_preprocessed)
 
         # Generate batch
         # TODO what are the implications of this change on performance
@@ -80,8 +80,8 @@ def data_loader_images(
             # Extract ground truth GHI from dataframe
             targets_np = np.zeros([output_seq_len], dtype='float32')
             for m in range(output_seq_len):
-                k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
-                targets_np[m] = dataframe[f"{station_name}_GHI"][k]
+                k = dataframe_preprocessed.index.get_loc(target_datetimes[i] + target_time_offsets[m])
+                targets_np[m] = dataframe_preprocessed[f"{station_name}_GHI"][k]
 
             samples = tf.convert_to_tensor(nc_var_data[indices_in_nc[i], :, :, :, :] / 100.)
             targets = tf.convert_to_tensor(targets_np)

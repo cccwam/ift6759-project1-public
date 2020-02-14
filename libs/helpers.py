@@ -232,4 +232,3 @@ def fillGHI(dataframe):
         dataframe[f'{station}_GHI'] = (dataframe[f"{station}_GHI"]).interpolate(method='linear')
 
     return dataframe
-

@@ -16,9 +16,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            tmpfile=$RANDOM
-            cat requirements-*.txt > $tmpfile
-            pip install -r $tmpfile
+            pip install -r requirements.txt
       # Step 3: run linter and tests
       - run:
           name: run tests

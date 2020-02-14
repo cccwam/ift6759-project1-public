@@ -24,23 +24,27 @@ def main(
     admin_config_dict = helpers.load_dict(admin_config_path)
     user_config_dict = helpers.load_dict(user_config_path)
     validation_config_dict = helpers.load_dict(admin_config_path.replace('_train.json', '_validation.json'))
+    trainer_dict = user_config_dict['trainer']
 
     helpers.validate_admin_config(admin_config_dict)
     helpers.validate_user_config(user_config_dict)
 
-    data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
-    validation_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
+    train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
+    valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
     model = helpers.get_online_model(user_config_dict, admin_config_dict)
 
-    train_simple(model, data_loader, tensorboard_tracking_folder,
-                 validation_loader=validation_loader)
+    train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder)
     model.save(helpers.generate_model_name(user_config_dict))
 
 
-def train_model(model, data_loader, tensorboard_tracking_folder):
+def train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder):
     # Activate this for multi gpu
     # Use only a maximum of 4 GPUs
     nb_gpus = tf.test.gpu_device_name()
+    trainer_hyper_params = trainer_dict['hyper_params']
+    print("Trainer hyper params:")
+    print(trainer_hyper_params)
+    print(valid_data_loader)
 
     mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(1, len(nb_gpus)))])
     print("------------")
@@ -75,7 +79,7 @@ def train_model(model, data_loader, tensorboard_tracking_folder):
         tensorboard_log_dir = os.path.join(tensorboard_exp_id, str(variation_num))
         print("Start variation id:", tensorboard_log_dir)
         train_test_model(
-            dataset=data_loader,
+            dataset=train_data_loader,
             model=model,
             hp_optimizer=hp_optimizer,
             epochs=20,

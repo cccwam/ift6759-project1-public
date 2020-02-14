@@ -15,5 +15,12 @@
       "name": "data_loader_v1"
     },
     "hyper_params": {}
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [0.03],
+      "epochs": [20],
+      "patience": [5]
+    }
   }
 }

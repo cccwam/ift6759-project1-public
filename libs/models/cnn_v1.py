@@ -28,7 +28,6 @@ def my_model_builder(
     :return:
     """
 
-
     def my_cnn_encoder():
         """
             This function return the CNN encoder module, needed to extract features map.

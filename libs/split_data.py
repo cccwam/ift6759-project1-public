@@ -7,6 +7,8 @@ from datetime import timedelta, date, datetime
 
 import numpy as np
 
+import helpers
+
 # Script for generating config files for training/validation/test split
 # Usage: python split_data.py [-c path_to_catalog.pkl] [-l cfg_name_{0}.json]
 
@@ -52,7 +54,7 @@ def write_cfg_file(json_file, params):
 
 
 def lightweight_year_split(
-        years_splits=(2010, 2014, 2015, 2016), seed=987):
+        years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
     random.seed(seed)
     resulting_splits = []
 
@@ -76,7 +78,7 @@ def lightweight_year_split(
 
 
 def hourly_split(
-        years_splits=(2010, 2014, 2015, 2016), seed=987):
+        years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
     random.seed(seed)
     resulting_splits = []
 
@@ -100,6 +102,75 @@ def hourly_split(
     return np.array(resulting_splits)
 
 
+def hourly_split_daytime(
+        years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
+    random.seed(seed)
+    df = helpers.remove_night_values(kwargs['_dataframe'])
+    df = helpers.remove_null_path(df)
+    resulting_splits = []
+
+    for i in range(len(years_splits)-1):
+        year_start = date(years_splits[i], 1, 1)
+        year_end = date(years_splits[i+1], 1, 1)
+        current_samples = []
+        for current_day in date_range(year_start, year_end):
+            for new_hour in range(0, 24):
+                available_minutes = [0, 15, 30, 45]
+                while available_minutes:
+                    new_minute = random.choice(available_minutes)
+                    available_minutes.remove(new_minute)
+                    new_dt = datetime(current_day.year, current_day.month,
+                                      current_day.day, new_hour, new_minute)
+                    try:
+                        _ = df.index.get_loc(new_dt)
+                    except KeyError:
+                        continue
+                    current_samples.append(
+                        new_dt.strftime('%Y-%m-%dT%H:%M:%S'))
+                    break
+        resulting_splits.append(current_samples)
+
+    return np.array(resulting_splits)
+
+
+def daily_split_daytime(
+        years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
+    random.seed(seed)
+    df = helpers.remove_night_values(kwargs['_dataframe'])
+    df = helpers.remove_null_path(df)
+    resulting_splits = []
+
+    for i in range(len(years_splits)-1):
+        year_start = date(years_splits[i], 1, 1)
+        year_end = date(years_splits[i+1], 1, 1)
+        current_samples = []
+        for current_day in date_range(year_start, year_end):
+            flag_break = False
+            available_hours = list(range(0, 24))
+            while available_hours:
+                new_hour = random.choice(available_hours)
+                available_hours.remove(new_hour)
+                available_minutes = [0, 15, 30, 45]
+                while available_minutes:
+                    new_minute = random.choice(available_minutes)
+                    available_minutes.remove(new_minute)
+                    new_dt = datetime(current_day.year, current_day.month,
+                                      current_day.day, new_hour, new_minute)
+                    try:
+                        _ = df.index.get_loc(new_dt)
+                    except KeyError:
+                        continue
+                    current_samples.append(
+                        new_dt.strftime('%Y-%m-%dT%H:%M:%S'))
+                    flag_break = True
+                    break
+                if flag_break:
+                    break
+        resulting_splits.append(current_samples)
+
+    return np.array(resulting_splits)
+
+
 def generate_params(catalog_file=default_catalog_path,
                     method='lightweight_year_split', **kwargs):
     """Generate parameters for config file based on a given method
@@ -114,6 +185,7 @@ def generate_params(catalog_file=default_catalog_path,
     with open(catalog_file, 'rb') as df_file_handler:
         df = pickle.load(df_file_handler)
     split_method = getattr(sys.modules[__name__], method)
+    kwargs['_dataframe'] = df
     target_datetimes_split = split_method(**kwargs)
     params = []
     for i in range(3):

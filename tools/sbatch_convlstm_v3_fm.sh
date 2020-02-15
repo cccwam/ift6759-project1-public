@@ -33,6 +33,6 @@ module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
-  --admin_cfg_path configs/admin/daily_random_01_validation.json \
+  --admin_cfg_path configs/admin/daily_random_01_train.json \
   --user_cfg_path configs/user/convlstm_image_v3.json \
   --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/$USER

@@ -1,13 +1,10 @@
 import json
-import jsonschema
+import os
+import pickle
 import uuid
 from datetime import datetime, timedelta
-import os
-import sys
-import pickle
-from importlib import import_module
 
-
+import jsonschema
 import tensorflow as tf
 
 
@@ -196,8 +193,7 @@ def compile_model(model, learning_rate):
     return model_instance
 
 
-def removeNightValues(dataframe):
-
+def remove_night_values(dataframe):
     return dataframe[(dataframe.DRA_DAYTIME == 1) |
                      (dataframe.TBL_DAYTIME == 1) |
                      (dataframe.BND_DAYTIME == 1) |
@@ -207,14 +203,13 @@ def removeNightValues(dataframe):
                      (dataframe.SXF_DAYTIME == 1)]
 
 
-def removeNullPath(dataframe):
+def remove_null_path(dataframe):
     return dataframe[dataframe['ncdf_path'] != 'nan']
 
 
 # Since the first GHI values of the DRA station are NaN, it cannot
 # inteprolate values, we will have to decide how to take of them
-def fillGHI(dataframe):
-
+def fill_ghi(dataframe):
     stations = ['BND', 'TBL', 'DRA', 'FPK', 'GWN', 'PSU', 'SXF']
     for station in stations:
         dataframe[f'{station}_GHI'] = (dataframe[f"{station}_GHI"]).interpolate(method='linear')

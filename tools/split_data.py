@@ -1,9 +1,9 @@
-import sys
-import pickle
-import json
-import random
-from datetime import timedelta, date, datetime
 import argparse
+import json
+import pickle
+import random
+import sys
+from datetime import timedelta, date, datetime
 
 import numpy as np
 
@@ -13,21 +13,21 @@ import numpy as np
 default_catalog_path = '/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl'
 
 cfg_template = {
-  "stations": {
-    "BND": [40.05192, -88.37309, 230],
-    "TBL": [40.12498, -105.23680, 1689],
-    "DRA": [36.62373, -116.01947, 1007],
-    "FPK": [48.30783, -105.10170, 634],
-    "GWN": [34.25470, -89.87290, 98],
-    "PSU": [40.72012, -77.93085, 376],
-    "SXF": [43.73403, -96.62328, 473]
-  },
-  "target_time_offsets": [
-    "P0DT0H0M0S",
-    "P0DT1H0M0S",
-    "P0DT3H0M0S",
-    "P0DT6H0M0S"
-  ],
+    "stations": {
+        "BND": [40.05192, -88.37309, 230],
+        "TBL": [40.12498, -105.23680, 1689],
+        "DRA": [36.62373, -116.01947, 1007],
+        "FPK": [48.30783, -105.10170, 634],
+        "GWN": [34.25470, -89.87290, 98],
+        "PSU": [40.72012, -77.93085, 376],
+        "SXF": [43.73403, -96.62328, 473]
+    },
+    "target_time_offsets": [
+        "P0DT0H0M0S",
+        "P0DT1H0M0S",
+        "P0DT3H0M0S",
+        "P0DT6H0M0S"
+    ],
 }
 
 
@@ -56,9 +56,9 @@ def lightweight_year_split(
     random.seed(seed)
     resulting_splits = []
 
-    for i in range(len(years_splits)-1):
+    for i in range(len(years_splits) - 1):
         year_start = date(years_splits[i], 1, 1)
-        year_end = date(years_splits[i+1], 1, 1)
+        year_end = date(years_splits[i + 1], 1, 1)
         current_samples = []
         for current_day in date_range(year_start, year_end):
             current_samples.append(
@@ -80,9 +80,9 @@ def hourly_split(
     random.seed(seed)
     resulting_splits = []
 
-    for i in range(len(years_splits)-1):
+    for i in range(len(years_splits) - 1):
         year_start = date(years_splits[i], 1, 1)
-        year_end = date(years_splits[i+1], 1, 1)
+        year_end = date(years_splits[i + 1], 1, 1)
         current_samples = []
         for current_day in date_range(year_start, year_end):
             for new_hour in range(0, 24):

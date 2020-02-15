@@ -1,13 +1,22 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.convlstm_v2_no_metadata",
-      "name": "my_conv_lstm_model_builder"
+      "module": "libs.models.cnn_v1",
+      "name": "my_model_builder"
     },
     "hyper_params": {
       "dropout": [
-        0,
-        0.25
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.30,
+        0.35,
+        0.40,
+        0.45,
+        0.5
       ]
     },
     "source": ""
@@ -24,7 +33,6 @@
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        3e-2,
         3e-3
       ],
       "epochs": [

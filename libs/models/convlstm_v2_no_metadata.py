@@ -2,9 +2,10 @@
     Dummy ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
 
 """
-import tensorflow as tf
-import typing
 import datetime
+import typing
+
+import tensorflow as tf
 
 
 def my_conv_lstm_model_builder(
@@ -13,7 +14,17 @@ def my_conv_lstm_model_builder(
         config: typing.Dict[typing.AnyStr, typing.Any],
         verbose=True):
     """
-        Builder function
+        Builder function for the first convlstm model
+
+        This model is based on the ConvLSTM paper.
+        https://papers.nips.cc/paper/5955-convolutional-lstm-network-a-machine-learning-approach-for-precipitation-nowcasting
+
+        It's similar to convlstm_v2 except that it's not using metadata.
+        It appears that metadata gives a boost.
+
+    :param stations:
+    :param target_time_offsets:
+    :param config:
     :param verbose:
     :return:
     """
@@ -77,12 +88,12 @@ def my_conv_lstm_model_builder(
         metadata_input = tf.keras.Input(shape=(8,), name='metadata')
 
         x = my_cnn_encoder(img_input)
-        all_inputs = x # tf.keras.layers.Concatenate()([x, metadata_input])
+        all_inputs = x  # tf.keras.layers.Concatenate()([x, metadata_input])
         x = my_classifier(all_inputs)
 
         return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel')
 
-    model_hparams = config["hyper_params"]
+    model_hparams = config["model"]["hyper_params"]
 
     my_cnn_encoder = my_cnn_encoder()
     if verbose:
@@ -91,7 +102,7 @@ def my_conv_lstm_model_builder(
         print("")
 
     my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1],
-                    dropout=model_hparams["dropout"])
+                                  dropout=model_hparams["dropout"])
     if verbose:
         print("")
         my_classifier.summary()

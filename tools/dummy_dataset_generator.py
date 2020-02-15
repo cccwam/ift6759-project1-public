@@ -3,12 +3,12 @@
     inspired by https://keras.io/examples/conv_lstm/
 
 """
-import time
 import argparse
+import pickle
+import time
 
 import numpy as np
 import tensorflow as tf
-import pickle
 
 
 def generate_dummy_dataset(batch_size, n_samples=1200, n_frames=15, frame_shape=(80, 80)):

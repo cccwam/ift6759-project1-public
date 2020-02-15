@@ -2,8 +2,8 @@
 #   Trains the predictor
 
 import argparse
-import typing
 import os
+import typing
 
 # netCDF4 has to be imported before tensorflow because of hdf5 issues
 import netCDF4
@@ -11,6 +11,7 @@ import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
 from libs import helpers
+
 # from tools.dummy_dataset_generator import generate_dummy_dataset
 
 _ = netCDF4  # surpress unused module warning
@@ -31,7 +32,6 @@ def main(
     train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
     valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
 
-
     # Multi GPU setup
     nb_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
     mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, nb_gpus))])
@@ -42,16 +42,15 @@ def main(
 
     # Main training loop
     train_models(user_config_dict=user_config_dict,
-                admin_config_dict=admin_config_dict,
-                train_data_loader=train_data_loader, valid_data_loader=valid_data_loader,
-                tensorboard_tracking_folder=tensorboard_tracking_folder,
-                mirrored_strategy=mirrored_strategy)
+                 admin_config_dict=admin_config_dict,
+                 train_data_loader=train_data_loader, valid_data_loader=valid_data_loader,
+                 tensorboard_tracking_folder=tensorboard_tracking_folder,
+                 mirrored_strategy=mirrored_strategy)
 
 
 def train_models(user_config_dict, admin_config_dict,
-                train_data_loader, valid_data_loader,
-                tensorboard_tracking_folder, mirrored_strategy):
-
+                 train_data_loader, valid_data_loader,
+                 tensorboard_tracking_folder, mirrored_strategy):
     # Retrieve the configuration to create the right model and to keep track on tensorboard
     model_dict = user_config_dict['model']
     print()
@@ -72,7 +71,8 @@ def train_models(user_config_dict, admin_config_dict,
     # Keep model and dataloader class names
     model_name = model_dict["definition"]["module"].split(".")[-1] + "." + model_dict["definition"]["name"]
     hp_model = hp.HParam('model_class', hp.Discrete([model_name]))
-    data_loader_name = data_loader_dict["definition"]["module"].split(".")[-1]  + "." + data_loader_dict["definition"]["name"]
+    data_loader_name = data_loader_dict["definition"]["module"].split(".")[-1] + "." + data_loader_dict["definition"][
+        "name"]
     hp_dataloader = hp.HParam('dataloader_class', hp.Discrete([data_loader_name]))
 
     # Create a unique id for the experiment for Tensorboard
@@ -107,7 +107,12 @@ def train_models(user_config_dict, admin_config_dict,
                         hp_patience: patience,
                     }
 
-                    # TODO here add dropout here
+                    # Copy the user config for the specific current model
+                    current_user_dict = user_config_dict.copy()
+                    # Add dropout
+                    if dropout is not None:
+                        current_user_dict["model"]['hyper_params']["dropout"] = dropout
+
                     if mirrored_strategy is not None and mirrored_strategy.num_replicas_in_sync > 1:
                         with mirrored_strategy.scope():
                             model = helpers.get_online_model(user_config_dict, admin_config_dict)
@@ -129,8 +134,6 @@ def train_models(user_config_dict, admin_config_dict,
                     )
                     variation_num += 1
 
-
-
     # Save final model
     model.save(helpers.generate_model_name(user_config_dict))
 
@@ -145,7 +148,7 @@ def train_test_model(
         epochs,
         learning_rate,
         patience,
-    checkpoints_dir="/project/cq-training-1/project1/teams/team03/checkpoints"
+        checkpoints_dir="/project/cq-training-1/project1/teams/team03/checkpoints"
 ):
     """
     Training loop
@@ -172,13 +175,13 @@ def train_test_model(
         tf.keras.callbacks.TensorBoard(log_dir=str(tensorboard_log_dir), profile_batch=0),
         hp.KerasCallback(writer=str(tensorboard_log_dir), hparams=hparams),
         tf.keras.callbacks.EarlyStopping(patience=patience),
+        # TODO to review the model checkpoints to have a unique filename
         tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
-                                           save_weights_only=True),
+                                           save_weights_only=False),
     ]
 
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks,
                        validation_data=validation_dataset)
-
 
 
 if __name__ == '__main__':

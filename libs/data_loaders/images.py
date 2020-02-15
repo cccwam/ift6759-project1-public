@@ -1,12 +1,14 @@
-import os
 import datetime
+import os
 import typing
 
+import netCDF4
 import numpy as np
 import pandas as pd
-import netCDF4
 import tensorflow as tf
+
 import libs.helpers
+
 
 # TODO to remove this old dataloader (see with Blaise)
 def data_loader_images(
@@ -43,8 +45,8 @@ def data_loader_images(
         # batch_size = 1
         output_seq_len = 4
         # Currently only support one station at a time.
-#        if len(list(stations.keys())) > 1: # TODO fix this
-#            raise NotImplementedError()
+        #        if len(list(stations.keys())) > 1: # TODO fix this
+        #            raise NotImplementedError()
 
         station_name = list(stations.keys())[0]
         data_file = f"preloader_{config['data_loader']['hyper_params']['admin_name']}_{station_name}.nc"
@@ -66,11 +68,11 @@ def data_loader_images(
             indices_in_nc[i] = np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
         # Remove night values and nan NCDF paths
-        dataframe_preprocessed = libs.helpers.removeNightValues(dataframe)
-        dataframe_preprocessed = libs.helpers.removeNullPath(dataframe_preprocessed)
+        dataframe_preprocessed = libs.helpers.remove_night_values(dataframe)
+        dataframe_preprocessed = libs.helpers.remove_null_path(dataframe_preprocessed)
 
         # TODO take care of nan GHI values
-        # dataframe_preprocessed = libs.helpers.fillGHI(dataframe_preprocessed)
+        # dataframe_preprocessed = libs.helpers.fill_ghi(dataframe_preprocessed)
 
         # Generate batch
         # TODO what are the implications of this change on performance
@@ -191,7 +193,7 @@ def data_loader_images_multimodal(
                         targets_np[j, m] = dataframe[f"{station_name}_GHI"][k]
 
                 tmp_data = nc_var_data[batch_of_nc_indices, :, :, :, :]
-                #tmp_data = tmp_data.reshape([tmp_data.shape[0], 25, 50, 50])
+                # tmp_data = tmp_data.reshape([tmp_data.shape[0], 25, 50, 50])
                 assert not np.any(np.isnan(tmp_data))
                 targets_np = np.nan_to_num(targets_np)
                 assert not np.any(np.isnan(targets_np))
@@ -218,7 +220,7 @@ def data_loader_images_multimodal(
 # TODO discuss with BLaise
 #  this version is faster using the batch feature of tf.dataset when using multiple GPU
 # The idea is to parallize as much as possible all data loading processes
-def data_loader_images_multimodal_FM(
+def data_loader_images_multimodal_fm(
         dataframe: pd.DataFrame,
         target_datetimes: typing.List[datetime.datetime],
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
@@ -263,6 +265,7 @@ def data_loader_images_multimodal_FM(
             nc_var = nc.variables['data']
             # Loading all data in memory greatly speeds up things, but if we move to much larger
             # sample size and crop size this might need to be done differently.
+            # TODO to not load everything in memory
             nc_var_data = nc_var[:, :, :, :, :]
             nc_time = nc.variables['time']
 
@@ -302,7 +305,7 @@ def data_loader_images_multimodal_FM(
                     targets_np[m] = dataframe[f"{station_name}_GHI"][k]
 
                 tmp_data = nc_var_data[indices_in_nc[i], :, :, :]
-                #tmp_data = tmp_data.reshape([tmp_data.shape[0], 25, 50, 50])
+                # tmp_data = tmp_data.reshape([tmp_data.shape[0], 25, 50, 50])
                 assert not np.any(np.isnan(tmp_data))
                 targets_np = np.nan_to_num(targets_np)
                 assert not np.any(np.isnan(targets_np))

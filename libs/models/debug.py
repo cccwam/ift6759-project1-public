@@ -32,7 +32,7 @@ def test_dataloader(
         def call(self, inputs):
             if self.verbose:
                 if not isinstance(inputs, tuple):
-                    inputs_tuple = (inputs, )
+                    inputs_tuple = (inputs,)
                 else:
                     inputs_tuple = inputs
                 for i, one_input in enumerate(inputs_tuple):

@@ -18,10 +18,18 @@
   },
   "trainer": {
     "hyper_params": {
-      "lr_rate": [0.03],
-      "epochs": [20],
-      "batch_size": [32],
-      "patience": [5]
+      "lr_rate": [
+        0.03
+      ],
+      "epochs": [
+        20
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        5
+      ]
     }
   }
 }

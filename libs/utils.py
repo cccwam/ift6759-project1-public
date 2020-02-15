@@ -18,9 +18,11 @@ import tqdm
 
 def get_label_color_mapping(idx):
     """Returns the PASCAL VOC color triplet for a given label index."""
+
     # https://gist.github.com/wllhf/a4533e0adebe57e3ed06d4b50c8419ae
     def bitget(byteval, ch):
         return (byteval & (1 << ch)) != 0
+
     r = g = b = 0
     for j in range(8):
         r = r | (bitget(idx, 0) << 7 - j)

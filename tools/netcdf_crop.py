@@ -1,13 +1,14 @@
-import os
-import json
-import pickle
-import datetime
 import argparse
+import datetime
+import json
+import os
+import pickle
 
+import netCDF4
 import numpy as np
 import numpy.ma as ma
-import netCDF4
 import tqdm
+
 
 # Script for preprocessing crop around stations
 # Usage: python netcdf_crop.py cfg_file.json [crop_size] [path_output]

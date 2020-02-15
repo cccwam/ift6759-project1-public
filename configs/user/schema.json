@@ -30,7 +30,13 @@
         },
         "hyper_params": {
           "type": "object",
-          "description": "The hyper-parameters to use for this model during training."
+          "description": "The hyper-parameters to use for this model during training.",
+          "dropout": {
+            "type": "array"
+          },
+          "required": [
+            "dropout"
+          ]
         },
         "source": {
           "oneOf": [

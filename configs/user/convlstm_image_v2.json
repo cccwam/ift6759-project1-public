@@ -5,25 +5,37 @@
       "name": "my_conv_lstm_model_builder"
     },
     "hyper_params": {
-      "dropout": [0, 0.25]
+      "dropout": [
+        0.0,
+        0.25
+      ]
     },
     "source": ""
   },
   "data_loader": {
     "definition": {
       "module": "libs.data_loaders.images",
-      "name": "data_loader_images_multimodal_FM"
+      "name": "data_loader_images_multimodal_fm"
     },
     "hyper_params": {
       "admin_name": "daily_random_01_validation"
     }
   },
-    "trainer": {
+  "trainer": {
     "hyper_params": {
-      "lr_rate": [3e-2, 3e-3],
-      "epochs": [100],
-      "batch_size": [32],
-      "patience": [5]
+      "lr_rate": [
+        3e-2,
+        3e-3
+      ],
+      "epochs": [
+        100
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        5
+      ]
     }
   }
 }

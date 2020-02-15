@@ -1,9 +1,9 @@
 import datetime
-import typing
 import pickle
+import typing
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 
 
@@ -148,7 +148,7 @@ def ineichen_clear_sky(
                 altitude = inputs[i, 7]
                 times = pd.date_range(
                     start=mydate.isoformat(),
-                    end=(mydate+target_time_offsets[3]).isoformat(), freq='1H')
+                    end=(mydate + target_time_offsets[3]).isoformat(), freq='1H')
                 solpos = pvlib.solarposition.get_solarposition(times, latitude,
                                                                longitude)
                 apparent_zenith = solpos['apparent_zenith']

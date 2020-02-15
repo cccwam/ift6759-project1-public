@@ -2,9 +2,10 @@
     Dummy ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
 
 """
-import tensorflow as tf
-import typing
 import datetime
+import typing
+
+import tensorflow as tf
 
 
 def my_conv_lstm_model_builder(
@@ -13,7 +14,13 @@ def my_conv_lstm_model_builder(
         config: typing.Dict[typing.AnyStr, typing.Any],
         verbose=True):
     """
-        Builder function
+        Builder function for the first convlstm model
+
+        This model is too small
+
+    :param stations:
+    :param target_time_offsets:
+    :param config:
     :param verbose:
     :return:
     """

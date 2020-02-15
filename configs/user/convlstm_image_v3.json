@@ -1,0 +1,43 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.convlstm_v2",
+      "name": "my_conv_lstm_model_builder"
+    },
+    "hyper_params": {
+      "dropout": [
+        0.2,
+        0.30,
+        0.40,
+        0.5
+      ]
+    },
+    "source": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images_multimodal_fm"
+    },
+    "hyper_params": {
+      "admin_name": "daily_random_01_validation"
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        3e-2,
+        3e-3
+      ],
+      "epochs": [
+        100
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        5
+      ]
+    }
+  }
+}

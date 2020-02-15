@@ -1,0 +1,49 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.cnn_v1",
+      "name": "my_model_builder"
+    },
+    "hyper_params": {
+      "dropout": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.30,
+        0.35,
+        0.40,
+        0.45,
+        0.5
+      ]
+    },
+    "source": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images_multimodal_fm"
+    },
+    "hyper_params": {
+      "admin_name": "daily_daytime_01_train"
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        3e-3
+      ],
+      "epochs": [
+        100
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        5
+      ]
+    }
+  }
+}

@@ -176,8 +176,8 @@ def train_test_model(
         hp.KerasCallback(writer=str(tensorboard_log_dir), hparams=hparams),
         tf.keras.callbacks.EarlyStopping(patience=patience),
         # TODO to review the model checkpoints to have a unique filename
-        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
-                                           save_weights_only=False),
+#        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
+#                                           save_weights_only=False),
     ]
 
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks,

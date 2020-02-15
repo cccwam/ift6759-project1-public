@@ -27,7 +27,7 @@
       "name": "data_loader_images_multimodal_fm"
     },
     "hyper_params": {
-      "admin_name": "daily_random_01_train"
+      "admin_name": "hourly_daytime_01_train"
     }
   },
   "trainer": {
@@ -36,7 +36,7 @@
         3e-3
       ],
       "epochs": [
-        100
+        5
       ],
       "batch_size": [
         32

@@ -33,7 +33,9 @@ def main(
     valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
     model = helpers.get_online_model(user_config_dict, admin_config_dict)
 
-    train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder)
+
+    #train_model(model, trainer_dict, train_data_loader, valid_data_loader, tensorboard_tracking_folder)
+    train_simple(model, train_data_loader, tensorboard_tracking_folder, valid_data_loader)
     model.save(helpers.generate_model_name(user_config_dict))
 
 

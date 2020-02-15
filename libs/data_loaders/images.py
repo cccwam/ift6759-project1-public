@@ -1,8 +1,10 @@
 import os
+import glob
 import datetime
 import typing
 
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
 import netCDF4
 import tensorflow as tf
@@ -206,6 +208,104 @@ def data_loader_images_multimodal(
                 assert targets.dtype == tf.float32
 
                 yield (images, metadata), targets
+
+    return tf.data.Dataset.from_generator(
+        image_generator, ((tf.float32, tf.float32), tf.float32),
+        output_shapes=(
+            ((tf.TensorShape([None, 25, 50, 50]), tf.TensorShape([None, 8])),
+             tf.TensorShape([None, 4])))
+    )
+
+
+def data_loader_images_multimodal_v2(
+        dataframe: pd.DataFrame,
+        target_datetimes: typing.List[datetime.datetime],
+        stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
+        target_time_offsets: typing.List[datetime.timedelta],
+        config: typing.Dict[typing.AnyStr, typing.Any],
+        data_mode='train',
+) -> tf.data.Dataset:
+    """Satellite images data loader.
+
+    Args:
+        dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
+            relevant timestamp values over the test period.
+        target_datetimes: a list of timestamps that your data loader should use to provide imagery for your model.
+            The ordering of this list is important, as each element corresponds to a sequence of GHI values
+            to predict. By definition, the GHI values must be provided for the offsets given by ``target_time_offsets``
+            which are added to each timestamp (T=0) in this datetimes list.
+        stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
+        target_time_offsets: the list of timedeltas to predict GHIs for (by definition: [T=0, T+1h, T+3h, T+6h]).
+        config: configuration dictionary holding any extra parameters that might be required by the user. These
+            parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
+            such a JSON file is completely optional, and this argument can be ignored if not needed.
+
+    Returns:
+        A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
+        must correspond to one sequence of past imagery data. The tensors must be generated in the order given
+        by ``target_sequences``.
+    """
+
+    def image_generator():
+        """Baseline generator with time/lat/lon/elev."""
+
+        batch_size = 140
+        output_seq_len = 4
+
+        nc_search = os.path.join(
+            '/project/cq-training-1/project1/teams/team03/data',
+            f"preloader_{config['data_loader']['hyper_params']['admin_name']}_*.nc")
+        if data_mode == 'validation':
+            nc_search = nc_search.replace('_train_', '_validation_')
+        nc_files = glob.glob(nc_search)
+        nc_files.sort()
+        n_files = len(nc_files)
+        file_id = 0
+        nci = 0
+
+
+        next_file = True
+        flag_ongoing = True
+        while True:
+            if next_file:
+                nc = netCDF4.Dataset(nc_files[file_id], 'r')
+                nc_var = nc.variables['data'][:, :, :, :, :]
+                nc_metadata = nc.variables['metadata'][: ,:]
+                nc_ghi = nc.variables['ghi_targets'][:, :]
+                nci = 0
+                next_file = False
+            data = nc_var[nci:nci + batch_size, :, :, :, :]
+            # is ch1 a problem?
+            # data[:,:,0,:,:] /= 3.0
+            # Manually going for CNN
+            data = data.reshape([data.shape[0], 25, 50, 50])
+            metadata = nc_metadata[nci:nci + batch_size, :]
+            metadata = ma.filled(metadata, 0)  # something went wrong?
+            targets_np = nc_ghi[nci:nci + batch_size, :]
+            assert not np.any(np.isnan(data))
+            targets_np = np.nan_to_num(targets_np)  # what is the global average?
+            targets_np = ma.filled(targets_np, 0)
+            assert not np.any(np.isnan(targets_np))
+            assert not np.any(np.isnan(metadata))
+            images = tf.convert_to_tensor(data)
+            metadata = tf.convert_to_tensor(metadata)
+            targets = tf.convert_to_tensor(targets_np)
+
+            assert images.dtype == tf.float32
+            assert metadata.dtype == tf.float32
+            assert targets.dtype == tf.float32
+
+            if nci + batch_size >= nc_var.shape[0]:
+                nc.close()
+                next_file = True
+                file_id += 1
+                if file_id >= n_files:
+                    print(nc_files)
+                    break
+            else:
+                nci += batch_size
+
+            yield (images, metadata), targets
 
     return tf.data.Dataset.from_generator(
         image_generator, ((tf.float32, tf.float32), tf.float32),

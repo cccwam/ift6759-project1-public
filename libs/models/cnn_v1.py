@@ -39,16 +39,19 @@ def my_model_builder(
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=128, kernel_size=(5, 5),
                                    data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
                                    padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3),
                                    data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
                                    padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3),
                                    data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
                                    padding='same')(x)
 
         x = tf.keras.layers.GlobalAveragePooling2D(data_format='channels_first')(x)
@@ -59,7 +62,8 @@ def my_model_builder(
     def my_classifier(input_size, dropout):
         """
             This function return the classification head module.
-        :param my_cnn_encoder: Encoder which will extract features map. Used to get the output size.
+        :param input_size:
+        :param dropout:
         :return: Keras model containing the classification head module
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
@@ -95,13 +99,15 @@ def my_model_builder(
 
     model_hparams = config["model"]["hyper_params"]
 
+    nb_metadata = model_hparams["nb_metadata"]
+
     my_cnn_encoder = my_cnn_encoder()
     if verbose:
         print("")
         my_cnn_encoder.summary()
         print("")
 
-    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8,
+    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + nb_metadata,
                                   dropout=model_hparams["dropout"])
     if verbose:
         print("")

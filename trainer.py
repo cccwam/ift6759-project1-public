@@ -32,6 +32,8 @@ def main(
     train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
     valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
 
+    print("Eager mode", tf.executing_eagerly())
+
     # Multi GPU setup
     nb_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
     mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, nb_gpus))])
@@ -153,6 +155,9 @@ def train_test_model(
     """
     Training loop
 
+    :param validation_dataset:
+    :param learning_rate:
+    :param patience:
     :param dataset:
     :param model:
     :param epochs:
@@ -176,8 +181,8 @@ def train_test_model(
         hp.KerasCallback(writer=str(tensorboard_log_dir), hparams=hparams),
         tf.keras.callbacks.EarlyStopping(patience=patience),
         # TODO to review the model checkpoints to have a unique filename
-#        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
-#                                           save_weights_only=False),
+        #        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
+        #                                           save_weights_only=False),
     ]
 
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks,

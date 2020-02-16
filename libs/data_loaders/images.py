@@ -129,6 +129,7 @@ def data_loader_images_multimodal(
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
         by ``target_sequences``.
+        :param data_mode:
     """
 
     def image_generator():
@@ -247,6 +248,7 @@ def data_loader_images_multimodal_fm(
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
         by ``target_sequences``.
+        :param data_mode:
     """
 
     def image_generator():

@@ -11,7 +11,7 @@ def data_loader_v1(
         target_datetimes: typing.List[datetime.datetime],
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
-        config: typing.Dict[typing.AnyStr, typing.Any],
+        config: typing.Dict[typing.AnyStr, typing.Any]
 ) -> tf.data.Dataset:
     """Baseline data loader.
 

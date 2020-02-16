@@ -48,7 +48,7 @@ def my_conv_lstm_model_builder(
     def my_classifier(input_size):
         """
             This function return the classification head module.
-        :param my_cnn_encoder: Encoder which will extract features map. Used to get the output size.
+        :param input_size:
         :return: Keras model containing the classification head module
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')

@@ -1,8 +1,8 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.cnn_v1",
-      "name": "my_model_builder"
+      "module": "libs.models.convlstm_v2",
+      "name": "my_conv_lstm_model_builder"
     },
     "hyper_params": {
       "dropout": [

@@ -172,3 +172,6 @@ def ineichen_clear_sky(
     model = Ineichen(target_time_offsets)
 
     return model
+
+
+

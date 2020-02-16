@@ -43,14 +43,14 @@ def my_model_builder(
                                    padding='same')(x)
         x = tf.keras.layers.BatchNormalization()(x)
         x_new = tf.keras.layers.Conv2D(filters=128, kernel_size=(5, 5),
-                                   data_format='channels_first',
-                                   activation=tf.keras.activations.relu,
-                                   padding='same')(x)
+                                       data_format='channels_first',
+                                       activation=tf.keras.activations.relu,
+                                       padding='same')(x)
         x_new = tf.keras.layers.BatchNormalization()(x_new)
         x_new = tf.keras.layers.Conv2D(filters=128, kernel_size=(5, 5),
-                                   data_format='channels_first',
-                                   activation=tf.keras.activations.relu,
-                                   padding='same')(x_new)
+                                       data_format='channels_first',
+                                       activation=tf.keras.activations.relu,
+                                       padding='same')(x_new)
         x = x_new + x
 
         x = tf.keras.layers.BatchNormalization()(x)
@@ -60,16 +60,15 @@ def my_model_builder(
                                    padding='same')(x)
         x = tf.keras.layers.BatchNormalization()(x)
         x_new = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
-                                   data_format='channels_first',
-                                   activation=tf.keras.activations.relu,
-                                   padding='same')(x)
+                                       data_format='channels_first',
+                                       activation=tf.keras.activations.relu,
+                                       padding='same')(x)
         x_new = tf.keras.layers.BatchNormalization()(x_new)
         x_new = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
-                                   data_format='channels_first',
-                                   activation=tf.keras.activations.relu,
-                                   padding='same')(x_new)
+                                       data_format='channels_first',
+                                       activation=tf.keras.activations.relu,
+                                       padding='same')(x_new)
         x = x_new + x
-
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
@@ -78,16 +77,15 @@ def my_model_builder(
                                    padding='same')(x)
         x = tf.keras.layers.BatchNormalization()(x)
         x_new = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
-                                   data_format='channels_first',
-                                   activation=tf.keras.activations.relu,
-                                   padding='same')(x)
+                                       data_format='channels_first',
+                                       activation=tf.keras.activations.relu,
+                                       padding='same')(x)
         x_new = tf.keras.layers.BatchNormalization()(x_new)
         x_new = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
-                                   data_format='channels_first',
-                                   activation=tf.keras.activations.relu,
-                                   padding='same')(x_new)
+                                       data_format='channels_first',
+                                       activation=tf.keras.activations.relu,
+                                       padding='same')(x_new)
         x = x_new + x
-
 
         x = tf.keras.layers.GlobalAveragePooling2D(data_format='channels_first')(x)
         encoder_output = tf.keras.layers.Flatten()(x)

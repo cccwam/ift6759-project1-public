@@ -33,7 +33,7 @@
         100
       ],
       "batch_size": [
-        64
+        32
       ],
       "patience": [
         10

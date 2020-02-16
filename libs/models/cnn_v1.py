@@ -95,7 +95,7 @@ def my_model_builder(
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
         x = my_classifier(all_inputs)
 
-        return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel')
+        return tf.keras.Model([img_input, metadata_input], x, name='cnn')
 
     model_hparams = config["model"]["hyper_params"]
 

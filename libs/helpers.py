@@ -48,6 +48,7 @@ def get_online_data_loader(
         * target_time_offsets
     If admin_config_dict is specified, it overwrites the parameters specified above.
 
+    :param data_mode:
     :param user_config_dict: The user dictionary used to store user model/dataloader parameters
     :param admin_config_dict: The admin dictionary used to store train set parameters
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -176,8 +177,8 @@ def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
 def compile_model(model, learning_rate):
     """
         Helper function to compile a new model at each variation of the experiment
+    :param learning_rate:
     :param model:
-    :param hparams:
     :return:
     """
 

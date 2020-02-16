@@ -1,16 +1,16 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.cnn_v1",
-      "name": "my_model_builder"
+      "module": "libs.models.convlstm_v2",
+      "name": "my_conv_lstm_model_builder"
     },
     "hyper_params": {
       "dropout": [
-        0.15,
-        0.25,
-        0.35
-      ],
-      "nb_metadata": 8
+        0.2,
+        0.30,
+        0.40,
+        0.5
+      ]
     },
     "source": ""
   },
@@ -20,23 +20,23 @@
       "name": "data_loader_images_multimodal_fm"
     },
     "hyper_params": {
-      "admin_name": "daily_daytime_01_train"
+      "admin_name": "daily_random_01_validation"
     }
   },
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        1e-4,
-        3e-4
+        3e-2,
+        3e-3
       ],
       "epochs": [
-        5
+        100
       ],
       "batch_size": [
-        64
+        32
       ],
       "patience": [
-        10
+        5
       ]
     }
   }

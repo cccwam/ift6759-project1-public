@@ -1,14 +1,14 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.cnn_v1",
+      "module": "libs.models.cnn_v2",
       "name": "my_model_builder"
     },
     "hyper_params": {
       "dropout": [
-        0.15,
-        0.25,
-        0.35
+        0.0,
+        0.20,
+        0.4
       ],
       "nb_metadata": 8
     },
@@ -26,11 +26,12 @@
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        1e-4,
+        3e-2,
+        3e-3,
         3e-4
       ],
       "epochs": [
-        5
+        100
       ],
       "batch_size": [
         64

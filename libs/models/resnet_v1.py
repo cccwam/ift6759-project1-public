@@ -41,18 +41,53 @@ def my_model_builder(
                                    data_format='channels_first',
                                    activation=tf.keras.activations.relu,
                                    padding='same')(x)
-
         x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3),
+        x_new = tf.keras.layers.Conv2D(filters=128, kernel_size=(5, 5),
                                    data_format='channels_first',
                                    activation=tf.keras.activations.relu,
                                    padding='same')(x)
+        x_new = tf.keras.layers.BatchNormalization()(x_new)
+        x_new = tf.keras.layers.Conv2D(filters=128, kernel_size=(5, 5),
+                                   data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
+                                   padding='same')(x_new)
+        x = x_new + x
 
         x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3),
+        x = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
                                    data_format='channels_first',
                                    activation=tf.keras.activations.relu,
                                    padding='same')(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x_new = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
+                                   data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
+                                   padding='same')(x)
+        x_new = tf.keras.layers.BatchNormalization()(x_new)
+        x_new = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
+                                   data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
+                                   padding='same')(x_new)
+        x = x_new + x
+
+
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
+                                   data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
+                                   padding='same')(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x_new = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
+                                   data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
+                                   padding='same')(x)
+        x_new = tf.keras.layers.BatchNormalization()(x_new)
+        x_new = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
+                                   data_format='channels_first',
+                                   activation=tf.keras.activations.relu,
+                                   padding='same')(x_new)
+        x = x_new + x
+
 
         x = tf.keras.layers.GlobalAveragePooling2D(data_format='channels_first')(x)
         encoder_output = tf.keras.layers.Flatten()(x)
@@ -68,11 +103,11 @@ def my_model_builder(
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
 
-        x = tf.keras.layers.Dense(128, activation=tf.keras.activations.relu)(clf_input)
+        x = tf.keras.layers.Dense(256, activation=tf.keras.activations.relu)(clf_input)
         x = tf.keras.layers.Dropout(dropout)(x)
         x = tf.keras.layers.BatchNormalization()(x)
 
-        x = tf.keras.layers.Dense(128, activation=tf.keras.activations.relu)(x)
+        x = tf.keras.layers.Dense(256, activation=tf.keras.activations.relu)(x)
         x = tf.keras.layers.Dropout(dropout)(x)
         x = tf.keras.layers.BatchNormalization()(x)
 
@@ -95,7 +130,7 @@ def my_model_builder(
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
         x = my_classifier(all_inputs)
 
-        return tf.keras.Model([img_input, metadata_input], x, name='cnn')
+        return tf.keras.Model([img_input, metadata_input], x, name='resnet')
 
     model_hparams = config["model"]["hyper_params"]
 

@@ -67,8 +67,6 @@ def data_loader_images_multimodal(
                 indices_in_nc[i] = \
                     np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
-
-
             # Generate batch
             i_load_min = 0
             i_load_max = 5000

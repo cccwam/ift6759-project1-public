@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --time=10:00:00
-#SBATCH --gres=gpu:k20:1
-#SBATCH --cpus-per-task=2
+#SBATCH --time=1:00:00
+#SBATCH --gres=gpu:k20:0
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=10000M
 # -SBATCH --reservation=IFT6759_2020-01-10
 

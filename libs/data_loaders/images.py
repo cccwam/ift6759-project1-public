@@ -10,8 +10,6 @@ import tensorflow as tf
 import libs.helpers
 
 
-
-
 # The idea is to parallize as much as possible all data loading processes
 def data_loader_images_multimodal(
         dataframe: pd.DataFrame,

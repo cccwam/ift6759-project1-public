@@ -52,5 +52,3 @@ def global_mean(
 
     return model
 
-
-

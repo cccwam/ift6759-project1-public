@@ -8,8 +8,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-import libs.helpers
-
 
 def data_loader_images_multimodal(
         dataframe: pd.DataFrame,

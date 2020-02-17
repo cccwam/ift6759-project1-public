@@ -104,16 +104,25 @@ def train_models(user_config_dict, admin_config_dict,
         for learning_rate in hp_learning_rate.domain.values:
             for dropout in hp_dropout.domain.values:
                 for patience in hp_patience.domain.values:
-                    hparams = {
-                        hp_batch_size: hp_batch_size.domain.values[0],
-                        hp_model: hp_model.domain.values[0],
-                        hp_dataloader: hp_dataloader.domain.values[0],
-                        hp_epochs: epochs,
-                        hp_learning_rate: learning_rate,
-                        hp_patience: patience,
-                    }
                     if dropout != -1.:
-                        hparams[hp_dropout] = dropout,
+                        hparams = {
+                            hp_batch_size: hp_batch_size.domain.values[0],
+                            hp_model: hp_model.domain.values[0],
+                            hp_dataloader: hp_dataloader.domain.values[0],
+                            hp_epochs: epochs,
+                            hp_dropout: dropout,
+                            hp_learning_rate: learning_rate,
+                            hp_patience: patience,
+                        }
+                    else:
+                        hparams = {
+                            hp_batch_size: hp_batch_size.domain.values[0],
+                            hp_model: hp_model.domain.values[0],
+                            hp_dataloader: hp_dataloader.domain.values[0],
+                            hp_epochs: epochs,
+                            hp_learning_rate: learning_rate,
+                            hp_patience: patience,
+                        }
 
                     # Copy the user config for the specific current model
                     current_user_dict = user_config_dict.copy()

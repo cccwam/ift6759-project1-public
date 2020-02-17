@@ -17,7 +17,7 @@
   "data_loader": {
     "definition": {
       "module": "libs.data_loaders.images",
-      "name": "data_loader_images_multimodal_fm"
+      "name": "data_loader_images_multimodal"
     },
     "hyper_params": {
       "admin_name": "daily_daytime_01_train"

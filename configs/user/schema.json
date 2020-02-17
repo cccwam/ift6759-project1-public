@@ -33,10 +33,7 @@
           "description": "The hyper-parameters to use for this model during training.",
           "dropout": {
             "type": "array"
-          },
-          "required": [
-            "dropout"
-          ]
+          }
         },
         "source": {
           "oneOf": [

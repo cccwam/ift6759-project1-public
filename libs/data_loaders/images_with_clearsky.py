@@ -55,10 +55,6 @@ def data_loader_images_multimodal(
                 os.path.join('/project/cq-training-1/project1/teams/team03/data',
                              data_file), 'r')
             nc_var = nc.variables['data']
-            # Loading all data in memory greatly speeds up things, but if we move to much larger
-            # sample size and crop size this might need to be done differently.
-            # TODO to not load everything in memory
-            nc_var_data = nc_var[:, :, :, :, :]
             nc_time = nc.variables['time']
 
             # match target datenums with indices in the netcdf file, we need to allow for
@@ -71,7 +67,12 @@ def data_loader_images_multimodal(
                 indices_in_nc[i] = \
                     np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
+
+
             # Generate batch
+            i_load_min = 0
+            i_load_max = 5000
+            nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
 
                 metadata = np.zeros([8 + 4],
@@ -125,7 +126,14 @@ def data_loader_images_multimodal(
                     k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
                     targets_np[m] = dataframe[f"{station_name}_GHI"][k]
 
-                tmp_data = nc_var_data[indices_in_nc[i], :, :, :]
+                # Loading all data in memory greatly speeds up things, but if we move to much larger
+                # sample size and crop size this might need to be done differently.
+                # Let's hack something to save memory
+                if indices_in_nc[i] >= i_load_max:
+                    i_load_min += 5000
+                    i_load_max += 5000
+                    nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
+                tmp_data = nc_var_data[indices_in_nc[i] - i_load_min, :, :, :, :]
                 # tmp_data = tmp_data.reshape([tmp_data.shape[0], 25, 50, 50])
                 assert not np.any(np.isnan(tmp_data))
                 targets_np = np.nan_to_num(targets_np)

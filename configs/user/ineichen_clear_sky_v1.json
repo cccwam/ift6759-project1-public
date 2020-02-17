@@ -5,8 +5,7 @@
       "name": "ineichen_clear_sky"
     },
     "hyper_params": {
-      "rmse_test_scale_factor": 1.25,
-      "dropout": [0.0]
+      "rmse_test_scale_factor": 1.25
     },
     "source": "online"
   },

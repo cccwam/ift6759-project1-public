@@ -86,7 +86,10 @@ def train_models(user_config_dict, admin_config_dict,
     # Hyperparameters search for the training loop
     hp_batch_size = hp.HParam('batch_size', hp.Discrete(trainer_hyper_params["batch_size"]))
     hp_epochs = hp.HParam('epochs', hp.Discrete(trainer_hyper_params["epochs"]))
-    hp_dropout = hp.HParam('dropout', hp.Discrete(model_dict['hyper_params']["dropout"]))
+    if "dropout" in model_dict['hyper_params'].keys():
+        hp_dropout = hp.HParam('dropout', hp.Discrete(model_dict['hyper_params']["dropout"]))
+    else:
+        hp_dropout = hp.HParam('dropout', hp.Discrete([None]))
     hp_learning_rate = hp.HParam('learning_rate', hp.Discrete(trainer_hyper_params["lr_rate"]))
     hp_patience = hp.HParam('patience', hp.Discrete(trainer_hyper_params["patience"]))
 

@@ -78,8 +78,9 @@ def train_models(user_config_dict, admin_config_dict,
     hp_dataloader = hp.HParam('dataloader_class', hp.Discrete([data_loader_name]))
 
     # Create a unique id for the experiment for Tensorboard
+    tensorboard_experiment_name = model_name + "_" + data_loader_name
     tensorboard_exp_id = helpers.get_tensorboard_experiment_id(
-        experiment_name=model_name + "_" + data_loader_name,
+        experiment_name=tensorboard_experiment_name,
         tensorboard_tracking_folder=tensorboard_tracking_folder
     )
 
@@ -89,7 +90,8 @@ def train_models(user_config_dict, admin_config_dict,
     if "dropout" in model_dict['hyper_params'].keys():
         hp_dropout = hp.HParam('dropout', hp.Discrete(model_dict['hyper_params']["dropout"]))
     else:
-        hp_dropout = hp.HParam('dropout', hp.Discrete([None]))
+        # Value to indicate no dropout for the model.
+        hp_dropout = hp.HParam('dropout', hp.Discrete([-1.0]))
     hp_learning_rate = hp.HParam('learning_rate', hp.Discrete(trainer_hyper_params["lr_rate"]))
     hp_patience = hp.HParam('patience', hp.Discrete(trainer_hyper_params["patience"]))
 
@@ -107,15 +109,16 @@ def train_models(user_config_dict, admin_config_dict,
                         hp_model: hp_model.domain.values[0],
                         hp_dataloader: hp_dataloader.domain.values[0],
                         hp_epochs: epochs,
-                        hp_dropout: dropout,
                         hp_learning_rate: learning_rate,
                         hp_patience: patience,
                     }
+                    if dropout != -1.:
+                        hparams[hp_dropout] = dropout,
 
                     # Copy the user config for the specific current model
                     current_user_dict = user_config_dict.copy()
                     # Add dropout
-                    if dropout is not None:
+                    if dropout != -1.:
                         current_user_dict["model"]['hyper_params']["dropout"] = dropout
 
                     if mirrored_strategy is not None and mirrored_strategy.num_replicas_in_sync > 1:
@@ -135,7 +138,9 @@ def train_models(user_config_dict, admin_config_dict,
                         validation_dataset=validation_dataset,
                         epochs=epochs,
                         learning_rate=learning_rate,
-                        patience=patience
+                        patience=patience,
+                        checkpoints_path=os.path.join(tensorboard_log_dir,
+                                                      tensorboard_experiment_name + ".{epoch:02d}-{val_loss:.2f}.hdf5")
                     )
                     variation_num += 1
 
@@ -153,7 +158,7 @@ def train_test_model(
         epochs,
         learning_rate,
         patience,
-        checkpoints_dir="/project/cq-training-1/project1/teams/team03/checkpoints"
+        checkpoints_path
 ):
     """
     Training loop
@@ -167,7 +172,7 @@ def train_test_model(
     :param tensorboard_log_dir:
     :param hparams:
     :param mirrored_strategy:
-    :param checkpoints_dir:
+    :param checkpoints_path:
     :return:
     """
 
@@ -183,9 +188,8 @@ def train_test_model(
         tf.keras.callbacks.TensorBoard(log_dir=str(tensorboard_log_dir), profile_batch=0),
         hp.KerasCallback(writer=str(tensorboard_log_dir), hparams=hparams),
         tf.keras.callbacks.EarlyStopping(patience=patience),
-        # TODO to review the model checkpoints to have a unique filename
-        #        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_dir,
-        #                                           save_weights_only=False),
+        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoints_path,
+                                           save_weights_only=False),
     ]
 
     compiled_model.fit(dataset, epochs=epochs, callbacks=callbacks,

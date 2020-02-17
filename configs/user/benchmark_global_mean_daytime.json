@@ -1,0 +1,37 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.global_mean_v1",
+      "name": "global_mean"
+    },
+    "hyper_params": {
+      "dataframe_path": "/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl"
+    },
+    "source": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images_multimodal"
+    },
+    "hyper_params": {
+      "admin_name": "daily_daytime_01_train"
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        3e-3
+      ],
+      "epochs": [
+        1
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        1
+      ]
+    }
+  }
+}

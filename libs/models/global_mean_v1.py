@@ -51,4 +51,3 @@ def global_mean(
     model = GlobalMean(target_time_offsets)
 
     return model
-

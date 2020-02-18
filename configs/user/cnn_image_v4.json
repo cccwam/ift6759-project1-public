@@ -6,13 +6,11 @@
     },
     "hyper_params": {
       "dropout": [
-        0.15,
-        0.20,
-        0.3
+        0.20
       ],
       "nb_metadata": 8
     },
-    "source": ""
+    "source": "libs.models.cnn_v2.my_model_builder.47ae1f9f2e49416ebb839e2fea9d8a38.tf"
   },
   "data_loader": {
     "definition": {
@@ -26,10 +24,10 @@
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        6e-3
+        3e-4
       ],
       "epochs": [
-        200
+        10
       ],
       "batch_size": [
         64

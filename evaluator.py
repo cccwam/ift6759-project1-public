@@ -4,6 +4,7 @@ import json
 import os
 import typing
 
+import netCDF4
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -119,7 +120,9 @@ def generate_predictions(data_loader: tf.data.Dataset, model: tf.keras.Model, pr
             # values, but since we are not training (and the GT is unavailable), we discard the last element
             # see https://github.com/mila-iqia/ift6759/blob/master/projects/project1/datasources.md#pipeline-formatting
             if len(minibatch) == 2:  # there is only one input + groundtruth, give the model the input directly
-                pred = model.predict(minibatch[0])
+                my_minibatch = (minibatch[0][0][np.newaxis, :, :, :, :], minibatch[0][1][np.newaxis, :])
+                # pred = model.predict(minibatch[0])
+                pred = model.predict(my_minibatch)
             else:  # the model expects multiple inputs, give them all at once using the tuple
                 pred = model(minibatch[:-1])
             if isinstance(pred, tf.Tensor):

@@ -54,8 +54,15 @@ def prepare_dataloader(
     ################################## MODIFY BELOW ##################################
 
     from libs import helpers
+    from tools.netcdf_crop import netcdf_preloader
 
     helpers.validate_user_config(config)
+
+    netcdf_preloader(
+        dataframe=dataframe,
+        target_datetimes=target_datetimes,
+        stations=stations
+    )
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,

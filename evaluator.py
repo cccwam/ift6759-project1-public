@@ -113,16 +113,14 @@ def generate_predictions(data_loader: tf.data.Dataset, model: tf.keras.Model, pr
     """Generates and returns model predictions given the data prepared by a data loader."""
     predictions = []
     with tqdm.tqdm("generating predictions", total=pred_count) as pbar:
-        for iter_idx, minibatch in enumerate(data_loader):
+        for iter_idx, minibatch in enumerate(data_loader.batch(64)):
             assert isinstance(minibatch, tuple) and len(minibatch) >= 2, \
                 "the data loader should load each minibatch as a tuple with model input(s) and target tensors"
             # remember: the minibatch should contain the input tensor(s) for the model as well as the GT (target)
             # values, but since we are not training (and the GT is unavailable), we discard the last element
             # see https://github.com/mila-iqia/ift6759/blob/master/projects/project1/datasources.md#pipeline-formatting
             if len(minibatch) == 2:  # there is only one input + groundtruth, give the model the input directly
-                my_minibatch = (minibatch[0][0][np.newaxis, :, :, :, :], minibatch[0][1][np.newaxis, :])
-                # pred = model.predict(minibatch[0])
-                pred = model.predict(my_minibatch)
+                pred = model.predict(minibatch[0])
             else:  # the model expects multiple inputs, give them all at once using the tuple
                 pred = model(minibatch[:-1])
             if isinstance(pred, tf.Tensor):

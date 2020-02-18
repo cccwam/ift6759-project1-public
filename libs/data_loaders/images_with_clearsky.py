@@ -3,12 +3,12 @@ import os
 import typing
 
 import netCDF4
+import pvlib
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
 
-# The idea is to parallize as much as possible all data loading processes
 def data_loader_images_multimodal(
         dataframe: pd.DataFrame,
         target_datetimes: typing.List[datetime.datetime],
@@ -17,7 +17,7 @@ def data_loader_images_multimodal(
         config: typing.Dict[typing.AnyStr, typing.Any],
         data_mode='train',
 ) -> tf.data.Dataset:
-    """Satellite images data loader.
+    """Satellite images data loader with the clearsky prediction in metadata
 
     Args:
         dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -71,7 +71,7 @@ def data_loader_images_multimodal(
             nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
 
-                metadata = np.zeros([8],
+                metadata = np.zeros([8 + 4],
                                     dtype=np.float32)
                 metadata[0] = target_datetimes[i].year
                 metadata[0] /= 2020
@@ -86,6 +86,35 @@ def data_loader_images_multimodal(
                 metadata[5] = stations[station_name][0] / 180.
                 metadata[6] = stations[station_name][1] / 360.
                 metadata[7] = stations[station_name][2] / 10000.
+
+                # Get clearsky predictions
+                # Implementation of the clear sky model as described in pvlib
+                # documentation at
+                # https://pvlib-python.readthedocs.io/en/stable/clearsky.html
+                latitude, longitude = stations[station_name][0], stations[station_name][1]
+                altitude = stations[station_name][2]
+                times = pd.date_range(
+                    start=target_datetimes[i].isoformat(),
+                    end=(target_datetimes[i] + target_time_offsets[3]).isoformat(), freq='1H')
+                solpos = pvlib.solarposition.get_solarposition(times, latitude,
+                                                               longitude)
+                apparent_zenith = solpos['apparent_zenith']
+                airmass = pvlib.atmosphere.get_relative_airmass(apparent_zenith)
+                pressure = pvlib.atmosphere.alt2pres(altitude)
+                airmass = pvlib.atmosphere.get_absolute_airmass(airmass,
+                                                                pressure)
+                linke_turbidity = pvlib.clearsky.lookup_linke_turbidity(
+                    times, latitude, longitude)
+                dni_extra = pvlib.irradiance.get_extra_radiation(times)
+                # an input is a pandas Series, so solis is a DataFrame
+                ineichen = pvlib.clearsky.ineichen(apparent_zenith, airmass,
+                                                   linke_turbidity, altitude,
+                                                   dni_extra)
+                metadata[8] = ineichen.ghi[0]
+                metadata[9] = ineichen.ghi[1]
+                metadata[10] = ineichen.ghi[3]
+                metadata[11] = ineichen.ghi[6]
+
                 # Extract ground truth GHI from dataframe
                 targets_np = np.zeros([output_seq_len],
                                       dtype=np.float32)
@@ -120,6 +149,6 @@ def data_loader_images_multimodal(
     return tf.data.Dataset.from_generator(
         image_generator, ((tf.float32, tf.float32), tf.float32),
         output_shapes=(
-            ((tf.TensorShape([None, 5, 50, 50]), tf.TensorShape([8])),
+            ((tf.TensorShape([None, 5, 50, 50]), tf.TensorShape([12])),
              tf.TensorShape([4])))
     )

@@ -1,7 +1,7 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.convlstm",
+      "module": "libs.models.convlstm_v2",
       "name": "my_conv_lstm_model_builder"
     },
     "hyper_params": {
@@ -24,10 +24,11 @@
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        0.03
+        3e-2,
+        3e-3
       ],
       "epochs": [
-        20
+        100
       ],
       "batch_size": [
         32

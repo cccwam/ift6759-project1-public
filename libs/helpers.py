@@ -1,13 +1,10 @@
 import json
-import jsonschema
+import os
+import pickle
 import uuid
 from datetime import datetime, timedelta
-import os
-import sys
-import pickle
-from importlib import import_module
 
-
+import jsonschema
 import tensorflow as tf
 
 
@@ -51,6 +48,7 @@ def get_online_data_loader(
         * target_time_offsets
     If admin_config_dict is specified, it overwrites the parameters specified above.
 
+    :param data_mode:
     :param user_config_dict: The user dictionary used to store user model/dataloader parameters
     :param admin_config_dict: The admin dictionary used to store train set parameters
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -176,40 +174,27 @@ def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
     return os.path.join(tensorboard_tracking_folder, model_sub_folder)
 
 
-def compile_model(model, hparams, hp_optimizer):
+def compile_model(model, learning_rate):
     """
         Helper function to compile a new model at each variation of the experiment
+    :param learning_rate:
     :param model:
-    :param hparams:
-    :param hp_optimizer:
     :return:
     """
 
     model_instance = model
 
-    # Workaround to get the right optimizer from class path
-    # Because hparams only accept dtype string not class
-    # See https://stackoverflow.com/questions/3451779/how-to-dynamically-create-an-instance-of-a-class-in-python
-    class_name = hparams[hp_optimizer].rsplit('.', 1)
-    if len(class_name) > 1:
-        module_path, class_name = class_name
-        module_path = module_path.replace("tf", "tensorflow")
-        module = import_module(module_path)
-    else:
-        class_name = class_name[0]
-        module = sys.modules[__name__]
-    optimizer_instance = getattr(module, class_name)()
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     model_instance.compile(
-        optimizer=optimizer_instance,
+        optimizer=optimizer,
         loss=tf.keras.losses.MeanSquaredError(),
         metrics=[tf.keras.metrics.RootMeanSquaredError()]
     )
     return model_instance
 
 
-def removeNightValues(dataframe):
-
+def remove_night_values(dataframe):
     return dataframe[(dataframe.DRA_DAYTIME == 1) |
                      (dataframe.TBL_DAYTIME == 1) |
                      (dataframe.BND_DAYTIME == 1) |
@@ -219,14 +204,13 @@ def removeNightValues(dataframe):
                      (dataframe.SXF_DAYTIME == 1)]
 
 
-def removeNullPath(dataframe):
+def remove_null_path(dataframe):
     return dataframe[dataframe['ncdf_path'] != 'nan']
 
 
 # Since the first GHI values of the DRA station are NaN, it cannot
 # inteprolate values, we will have to decide how to take of them
-def fillGHI(dataframe):
-
+def fill_ghi(dataframe):
     stations = ['BND', 'TBL', 'DRA', 'FPK', 'GWN', 'PSU', 'SXF']
     for station in stations:
         dataframe[f'{station}_GHI'] = (dataframe[f"{station}_GHI"]).interpolate(method='linear')

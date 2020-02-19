@@ -39,9 +39,12 @@ def netcdf_preloader(
     n_timestep = 5
 
     dc = crop_size // 2
-    ddt = datetime.timedelta(minutes=15)
+    ddt = timedelta(minutes=15)
 
-    cfg_name = os.path.basename(cfg_file).split('.')[0]
+    if cfg_file is None:
+        cfg_name = 'tmp'
+    else:
+        cfg_name = os.path.basename(cfg_file).split('.')[0]
 
     # number of sample points
     n_sample = len(target_datetimes)
@@ -49,7 +52,12 @@ def netcdf_preloader(
     # Generate all datetimes including prior timesteps from targets
     all_dt = []
     for dt_str in target_datetimes:
-        dt0 = datetime.datetime.fromisoformat(dt_str)
+        # Condition whether we are receiving the datetimes from a config file
+        # or as input.
+        if not isinstance(dt_str, datetime):
+            dt0 = datetime.fromisoformat(dt_str)
+        else:
+            dt0 = dt_str
         for i in range(4, 0, -1):
             all_dt.append(dt0 - i * ddt)
         all_dt.append(dt0)

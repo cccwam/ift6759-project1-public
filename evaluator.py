@@ -4,6 +4,7 @@ import json
 import os
 import typing
 
+import netCDF4
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -58,11 +59,57 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    netcdf_preloader(
-        dataframe=dataframe,
-        target_datetimes=target_datetimes,
-        stations=stations
-    )
+    # Total hack to do the preprocessing across all stations at once, and
+    # ONLY once. Since the evaluator.py only calls once station at a time,
+    # we need a way to process all stations on the first station call
+    # since it is 7x faster to load all crops from each image at once rather
+    # than doing it 7 times, but the list of all stations is not an input
+    # here...
+    # ToDo Clean this up
+    if list(stations.keys())[0] == 'BND':
+        # need to provide this path_output, this is where the data loader
+        # looks for preprocessed data.
+        netcdf_preloader(
+            path_output = '/project/cq-training-1/project1/teams/team03/data',
+            dataframe=dataframe,
+            target_datetimes=target_datetimes,
+            stations={"BND": [
+                          40.05192,
+                          -88.37309,
+                          230
+                        ],
+                        "TBL": [
+                          40.12498,
+                          -105.2368,
+                          1689
+                        ],
+                        "DRA": [
+                          36.62373,
+                          -116.01947,
+                          1007
+                        ],
+                        "FPK": [
+                          48.30783,
+                          -105.1017,
+                          634
+                        ],
+                        "GWN": [
+                          34.2547,
+                          -89.8729,
+                          98
+                        ],
+                        "PSU": [
+                          40.72012,
+                          -77.93085,
+                          376
+                        ],
+                        "SXF": [
+                          43.73403,
+                          -96.62328,
+                          473
+                        ]
+                      }
+        )
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,
@@ -119,7 +166,7 @@ def generate_predictions(data_loader: tf.data.Dataset, model: tf.keras.Model, pr
     """Generates and returns model predictions given the data prepared by a data loader."""
     predictions = []
     with tqdm.tqdm("generating predictions", total=pred_count) as pbar:
-        for iter_idx, minibatch in enumerate(data_loader):
+        for iter_idx, minibatch in enumerate(data_loader.batch(64)):
             assert isinstance(minibatch, tuple) and len(minibatch) >= 2, \
                 "the data loader should load each minibatch as a tuple with model input(s) and target tensors"
             # remember: the minibatch should contain the input tensor(s) for the model as well as the GT (target)

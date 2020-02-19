@@ -12,7 +12,7 @@
       ],
       "nb_metadata": 8
     },
-    "source": ""
+    "source": "libs.models.cnn_v2.my_model_builder.47ae1f9f2e49416ebb839e2fea9d8a38.tf"
   },
   "data_loader": {
     "definition": {
@@ -20,7 +20,7 @@
       "name": "data_loader_images_multimodal"
     },
     "hyper_params": {
-      "admin_name": "daily_daytime_01_train"
+      "admin_name": "tmp"
     }
   },
   "trainer": {

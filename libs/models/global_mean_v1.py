@@ -4,6 +4,8 @@ import typing
 
 import tensorflow as tf
 
+import numpy as np
+
 
 def global_mean(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
@@ -43,7 +45,7 @@ def global_mean(
 
         def call(self, inputs):
 
-            x = tf.keras.layers.Lambda(lambda x: tf.repeat(tf.convert_to_tensor(self.global_mean), 4),
+            x = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(np.repeat(self.global_mean, 4)),
                                        output_shape=(4,), name="global_mean")(inputs)
 
             return x

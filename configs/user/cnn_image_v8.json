@@ -1,0 +1,40 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.cnn_v2",
+      "name": "my_model_builder"
+    },
+    "hyper_params": {
+      "dropout": [
+        0.20
+      ],
+      "nb_metadata": 8
+    },
+    "source": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images_multimodal"
+    },
+    "hyper_params": {
+      "admin_name": "hourly_daytime_01_train"
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        3e-5
+      ],
+      "epochs": [
+        200
+      ],
+      "batch_size": [
+        64
+      ],
+      "patience": [
+        25
+      ]
+    }
+  }
+}

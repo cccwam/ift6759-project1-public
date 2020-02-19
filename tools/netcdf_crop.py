@@ -9,13 +9,57 @@ import numpy as np
 import numpy.ma as ma
 import tqdm
 
+from libs import helpers
+
 
 # Script for preprocessing crop around stations
-# Usage: python netcdf_crop.py cfg_file.json [crop_size] [path_output]
+# Usage: python netcdf_crop.py admin_config_file.json [crop_size] [path_output]
 
 
-def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
-                     tmp_array_size=200):
+def netcdf_preloader(
+        crop_size=50,
+        tmp_array_size=200,
+        admin_config_file_path=None,
+        path_output='.',
+        dataframe=None,
+        target_datetimes=None,
+        stations=None
+):
+    """
+    Preprocess netcdf files which are related to target_datetimes and stations
+
+    The resulting preprocessed netcdf files will be stored in path_output
+
+    If admin_config_file_path is not specified, the following have to be specified:
+        * dataframe
+        * target_datetimes
+        * stations
+    If admin_config_file is specified, it overwrites the parameters specified above.
+
+    :param crop_size: The crop size around each station in pixels
+    :param tmp_array_size:
+    :param admin_config_file_path: The admin configuration file path
+    :param path_output: The folder where the outputted preprocessed netcdf files will be placed
+    :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
+            relevant timestamp values over the test period.
+    :param target_datetimes: a list of timestamps that your data loader should use to provide imagery for your model.
+            The ordering of this list is important, as each element corresponds to a sequence of GHI values
+            to predict. By definition, the GHI values must be provided for the offsets given by ``target_time_offsets``
+            which are added to each timestamp (T=0) in this datetimes list.
+    :param stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
+    :return: A dictionary containing the station names as keys and their preprocessed netcdf files as values
+    """
+    if admin_config_file_path:
+        admin_config_dict = helpers.load_dict(admin_config_file_path)
+        dataframe_path = admin_config_dict['dataframe_path']
+        with open(dataframe_path, 'rb') as df_file_handler:
+            dataframe = pickle.load(df_file_handler)
+        target_datetimes = [
+            datetime.datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
+            for date_time in admin_config_dict['target_datetimes']
+        ]
+        stations = admin_config_dict['stations']
+
     # hard coded values for now
     n_channels = 5
     n_timestep = 5
@@ -23,19 +67,12 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
     dc = crop_size // 2
     ddt = datetime.timedelta(minutes=15)
 
-    cfg_name = os.path.basename(cfg_file).split('.')[0]
-    with open(cfg_file, 'r') as cfg_file_handler:
-        cfg = json.loads(cfg_file_handler.read())
-
-    with open(cfg['dataframe_path'], 'rb') as df_file_handler:
-        df = pickle.load(df_file_handler)
-
     # number of sample points
-    n_sample = len(cfg['target_datetimes'])
+    n_sample = len(target_datetimes)
 
     # Generate all datetimes including prior timesteps from targets
     all_dt = []
-    for dt_str in cfg['target_datetimes']:
+    for dt_str in target_datetimes:
         dt0 = datetime.datetime.fromisoformat(dt_str)
         for i in range(4, 0, -1):
             all_dt.append(dt0 - i * ddt)
@@ -47,9 +84,9 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
 
     # Initialize output netcdf files (one for each station)
     nc_outs = {}
-    for station, coord in cfg['stations'].items():
+    for station, coord in stations.items():
         nc_outs[station] = netCDF4.Dataset(
-            os.path.join(path_output, f'preloader_{cfg_name}_{station}.nc'),
+            os.path.join(path_output, f'{station}.nc'),
             'w')
         nc_outs[station].createDimension('time', n_sample)
         nc_outs[station].createDimension('lat', crop_size)
@@ -69,7 +106,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
     init = True
     tmp_arrays = {}
     coord_ij = {}
-    for station, coord in cfg['stations'].items():
+    for station, coord in stations.items():
         tmp_arrays[f"{station}"] = ma.masked_all((tmp_array_size, n_timestep, n_channels, crop_size, crop_size))
     tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
 
@@ -79,8 +116,8 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
         t_sample = t // n_timestep
         t_sample_tmp = t_sample % tmp_array_size
         timestep_id = t % n_timestep
-        k = df.index.get_loc(dt)
-        nc_path = df['ncdf_path'][k]
+        k = dataframe.index.get_loc(dt)
+        nc_path = dataframe['ncdf_path'][k]
         try:
             nc_loop = netCDF4.Dataset(nc_path, 'r')
         except OSError:
@@ -92,7 +129,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
             if init:
                 lat_loop = nc_loop['lat'][:]
                 lon_loop = nc_loop['lon'][:]
-                for station, coord in cfg['stations'].items():
+                for station, coord in stations.items():
                     lat_diff = np.abs(lat_loop - coord[0])
                     i = np.where(lat_diff == lat_diff.min())[0][0]
                     lon_diff = np.abs(lon_loop - coord[1])
@@ -104,7 +141,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
 
             for d, c in enumerate([1, 2, 3, 4, 6]):
                 channel_data = nc_loop.variables[f'ch{c}'][0, :, :]
-                for station, coord in cfg['stations'].items():
+                for station, coord in stations.items():
                     i, j = coord_ij[station]
                     tmp_arrays[f"{station}"][t_sample_tmp, timestep_id, d, :, :] = \
                         channel_data[i - dc:i + dc, j - dc:j + dc]
@@ -116,7 +153,7 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
 
         if ((t_sample_tmp == (tmp_array_size - 1)) and (timestep_id == n_timestep - 1)) or (t == (len(all_dt) - 1)):
             t0 = t_sample - t_sample_tmp
-            for station, coord in cfg['stations'].items():
+            for station, coord in stations.items():
                 # Here we fill missing values with 0
                 nc_outs[station]['data'][t0:t_sample + 1, :, :, :, :] = \
                     ma.filled(tmp_arrays[f"{station}"][:t_sample_tmp + 1, :, :, :, :], 0)
@@ -126,16 +163,21 @@ def netcdf_preloader(cfg_file, crop_size=50, path_output='.',
                     tmp_arrays['time'][:t_sample_tmp + 1]
             tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
 
-    for station, coord in cfg['stations'].items():
+    for station, coord in stations.items():
         nc_outs[station].close()
+
+    return {
+        station: nc_outs[station].filepath()
+        for station in stations
+    }
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('cfg_file', help='admin cfg file')
+    parser.add_argument('admin_config_file_path', help='admin cfg file')
     parser.add_argument('-c', '--crop_size', type=int, default=50,
                         help='crop size')
     parser.add_argument('-o', '--output_path', type=str, default='.',
                         help='output path')
     args = parser.parse_args()
-    netcdf_preloader(args.cfg_file, args.crop_size, args.output_path)
+    netcdf_preloader(args.admin_config_file_path, args.crop_size, args.output_path)

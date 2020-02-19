@@ -4,8 +4,8 @@ import json
 import os
 import typing
 
-import numpy as np
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 import tqdm
 
@@ -18,21 +18,17 @@ def prepare_dataloader(
         config: typing.Dict[typing.AnyStr, typing.Any],
 ) -> tf.data.Dataset:
     """This function should be modified in order to prepare & return your own data loader.
-
     Note that you can use either the netCDF or HDF5 data. Each iteration over your data loader should return a
     2-element tuple containing the tensor that should be provided to the model as input, and the target values. In
     this specific case, you will not be able to provide the latter since the dataframe contains no GHI, and we are
     only interested in predictions, not training. Therefore, you must return a placeholder (or ``None``) as the second
     tuple element.
-
     Reminder: the dataframe contains imagery paths for every possible timestamp requested in ``target_datetimes``.
     However, we expect that you will use some of the "past" imagery (i.e. imagery at T<=0) for any T in
     ``target_datetimes``, but you should NEVER rely on "future" imagery to generate predictions (for T>0). We
     will be inspecting data loader implementations to ensure this is the case, and those who "cheat" will be
     dramatically penalized.
-
     See https://github.com/mila-iqia/ift6759/tree/master/projects/project1/evaluation.md for more information.
-
     Args:
         dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
             relevant timestamp values over the test period.
@@ -45,17 +41,31 @@ def prepare_dataloader(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
-
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
         by ``target_sequences``.
     """
     ################################## MODIFY BELOW ##################################
+    # WE ARE PROVIDING YOU WITH A DUMMY DATA GENERATOR FOR DEMONSTRATION PURPOSES.
+    # MODIFY EVERYTHINGIN IN THIS BLOCK AS YOU SEE FIT
 
     from libs import helpers
+    from tools.netcdf_crop import netcdf_preloader
 
     helpers.validate_user_config(config)
+
+    preprocessed_data_source_path = config['data_loader']['hyper_params']['preprocessed_data_source']['validation']
+    if config['data_loader']['hyper_params']['should_preprocess_data']:
+        print(f"Pre-processing the data and storing in {preprocessed_data_source_path} ...")
+        netcdf_preloader(
+            dataframe=dataframe,
+            target_datetimes=target_datetimes,
+            stations=stations,
+            path_output=preprocessed_data_source_path
+        )
+    else:
+        print(f"Using previously pre-processed data from {preprocessed_data_source_path} ...")
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,
@@ -63,7 +73,7 @@ def prepare_dataloader(
         target_datetimes=target_datetimes,
         stations=stations,
         target_time_offsets=target_time_offsets,
-        data_mode='validation'
+        preprocessed_data_source_path=preprocessed_data_source_path
     )
 
     ################################### MODIFY ABOVE ##################################
@@ -77,16 +87,13 @@ def prepare_model(
         config: typing.Dict[typing.AnyStr, typing.Any],
 ) -> tf.keras.Model:
     """This function should be modified in order to prepare & return your own prediction model.
-
     See https://github.com/mila-iqia/ift6759/tree/master/projects/project1/evaluation.md for more information.
-
     Args:
         stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
         target_time_offsets: the list of timedeltas to predict GHIs for (by definition: [T=0, T+1h, T+3h, T+6h]).
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
-
     Returns:
         A ``tf.keras.Model`` object that can be used to generate new GHI predictions given imagery tensors.
     """
@@ -119,7 +126,7 @@ def generate_predictions(data_loader: tf.data.Dataset, model: tf.keras.Model, pr
             # values, but since we are not training (and the GT is unavailable), we discard the last element
             # see https://github.com/mila-iqia/ift6759/blob/master/projects/project1/datasources.md#pipeline-formatting
             if len(minibatch) == 2:  # there is only one input + groundtruth, give the model the input directly
-                pred = model.predict(minibatch[0])
+                pred = model(minibatch[0])
             else:  # the model expects multiple inputs, give them all at once using the tuple
                 pred = model(minibatch[:-1])
             if isinstance(pred, tf.Tensor):
@@ -137,7 +144,7 @@ def generate_all_predictions(
         dataframe: pd.DataFrame,
         user_config: typing.Dict[typing.AnyStr, typing.Any],
 ) -> np.ndarray:
-    """Generates and returns model predictions given the data prepared by a data loader."""
+    """Generates and returns model predictions g<iven the data prepared by a data loader."""
     # we will create one data loader per station to make sure we avoid mixups in predictions
     predictions = []
     for station_idx, station_name in enumerate(target_stations):

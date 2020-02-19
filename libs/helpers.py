@@ -32,11 +32,11 @@ def validate_user_config(user_config_dict):
 def get_online_data_loader(
         user_config_dict,
         admin_config_dict=None,
+        preprocessed_data_source_path=None,
         dataframe=None,
         target_datetimes=None,
         stations=None,
         target_time_offsets=None,
-        data_mode='train'
 ):
     """
     Get an online version of the data loader defined in user_config_dict
@@ -48,7 +48,7 @@ def get_online_data_loader(
         * target_time_offsets
     If admin_config_dict is specified, it overwrites the parameters specified above.
 
-    :param data_mode:
+    :param preprocessed_data_source_path: A path to the folder containing the preprocessed data
     :param user_config_dict: The user dictionary used to store user model/dataloader parameters
     :param admin_config_dict: The admin dictionary used to store train set parameters
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -65,7 +65,10 @@ def get_online_data_loader(
         dataframe_path = admin_config_dict['dataframe_path']
         with open(dataframe_path, 'rb') as df_file_handler:
             dataframe = pickle.load(df_file_handler)
-        target_datetimes = [datetime.strptime(s, '%Y-%m-%dT%H:%M:%S') for s in admin_config_dict['target_datetimes']]
+        target_datetimes = [
+            datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
+            for date_time in admin_config_dict['target_datetimes']
+        ]
         stations = admin_config_dict['stations']
         target_time_offsets = [timedelta(hours=h) for h in [0, 1, 3, 6]]  # hard coded
 
@@ -78,7 +81,7 @@ def get_online_data_loader(
         stations=stations,
         target_time_offsets=target_time_offsets,
         config=user_config_dict,
-        data_mode=data_mode
+        preprocessed_data_source_path=preprocessed_data_source_path
     )
 
 

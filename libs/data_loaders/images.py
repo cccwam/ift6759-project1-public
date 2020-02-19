@@ -15,7 +15,7 @@ def data_loader_images_multimodal(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
-        data_mode='train',
+        preprocessed_data_source_path=None
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
@@ -31,12 +31,12 @@ def data_loader_images_multimodal(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
+        preprocessed_data_source_path: A path to the folder containing the preprocessed data
 
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
         by ``target_sequences``.
-        :param data_mode:
     """
 
     def image_generator():
@@ -45,13 +45,8 @@ def data_loader_images_multimodal(
         output_seq_len = 4
 
         for station_name in stations.keys():
-            data_file = f"preloader_{config['data_loader']['hyper_params']['admin_name']}_{station_name}.nc"
-            if data_mode == 'validation':
-                data_file = data_file.replace('_train_', '_validation_')
-
-            nc = netCDF4.Dataset(
-                os.path.join('/project/cq-training-1/project1/teams/team03/data',
-                             data_file), 'r')
+            data_file = f"{station_name}.nc"
+            nc = netCDF4.Dataset(os.path.join(preprocessed_data_source_path, data_file), 'r')
             nc_var = nc.variables['data']
             nc_time = nc.variables['time']
 

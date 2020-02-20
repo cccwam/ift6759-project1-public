@@ -4,10 +4,13 @@ import json
 import os
 import typing
 
+import netCDF4  # need to import this before tensorflow because of a bug
 import pandas as pd
 import numpy as np
 import tensorflow as tf
 import tqdm
+
+_ = netCDF4  # suppress unused module warning
 
 
 def prepare_dataloader(
@@ -16,6 +19,7 @@ def prepare_dataloader(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
+        data_cache = None,
 ) -> tf.data.Dataset:
     """This function should be modified in order to prepare & return your own data loader.
     Note that you can use either the netCDF or HDF5 data. Each iteration over your data loader should return a
@@ -56,7 +60,7 @@ def prepare_dataloader(
     helpers.validate_user_config(config)
 
     preprocessed_data_source_path = config['data_loader']['hyper_params']['preprocessed_data_source']['validation']
-    if config['data_loader']['hyper_params']['should_preprocess_data']:
+    if config['data_loader']['hyper_params']['should_preprocess_data'] and (data_cache is None):
         print(f"Pre-processing the data and storing in {preprocessed_data_source_path} ...")
         netcdf_preloader(
             dataframe=dataframe,
@@ -119,14 +123,14 @@ def generate_predictions(data_loader: tf.data.Dataset, model: tf.keras.Model, pr
     """Generates and returns model predictions given the data prepared by a data loader."""
     predictions = []
     with tqdm.tqdm("generating predictions", total=pred_count) as pbar:
-        for iter_idx, minibatch in enumerate(data_loader):
+        for iter_idx, minibatch in enumerate(data_loader.batch(64)):
             assert isinstance(minibatch, tuple) and len(minibatch) >= 2, \
                 "the data loader should load each minibatch as a tuple with model input(s) and target tensors"
             # remember: the minibatch should contain the input tensor(s) for the model as well as the GT (target)
             # values, but since we are not training (and the GT is unavailable), we discard the last element
             # see https://github.com/mila-iqia/ift6759/blob/master/projects/project1/datasources.md#pipeline-formatting
             if len(minibatch) == 2:  # there is only one input + groundtruth, give the model the input directly
-                pred = model(minibatch[0])
+                pred = model.predict(minibatch[0])
             else:  # the model expects multiple inputs, give them all at once using the tuple
                 pred = model(minibatch[:-1])
             if isinstance(pred, tf.Tensor):
@@ -147,11 +151,14 @@ def generate_all_predictions(
     """Generates and returns model predictions g<iven the data prepared by a data loader."""
     # we will create one data loader per station to make sure we avoid mixups in predictions
     predictions = []
+    # We need to do the data preprocessing for all stations at once for
+    # performance issues
+    data_cache = prepare_dataloader(dataframe, target_datetimes, target_stations, target_time_offsets, user_config)
     for station_idx, station_name in enumerate(target_stations):
         # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
         stations = {station_name: target_stations[station_name]}
         print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
-        data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config)
+        data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config, data_cache=True)
         model = prepare_model(stations, target_time_offsets, user_config)
         station_preds = generate_predictions(data_loader, model, pred_count=len(target_datetimes))
         assert len(station_preds) == len(target_datetimes), "number of predictions mismatch with requested datetimes"

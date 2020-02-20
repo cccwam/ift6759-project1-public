@@ -1,0 +1,46 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.cnn_v2",
+      "name": "my_model_builder"
+    },
+    "hyper_params": {
+      "dropout": [
+        0.15,
+        0.20,
+        0.3
+      ],
+      "nb_metadata": 8
+    },
+    "source": "/project/cq-training-1/project1/teams/team03/cnn_v2.my_model_builder_images_cache.data_loader_images_multimodal.11-33576.11.hdf5"
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images",
+      "name": "data_loader_images_multimodal"
+    },
+    "hyper_params": {
+      "should_preprocess_data": true,
+      "preprocessed_data_source": {
+        "training": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/training",
+        "validation": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/validation"
+      }
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        6e-3
+      ],
+      "epochs": [
+        200
+      ],
+      "batch_size": [
+        64
+      ],
+      "patience": [
+        20
+      ]
+    }
+  }
+}

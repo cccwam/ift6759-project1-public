@@ -71,8 +71,7 @@ def netcdf_preloader(
 
     # Generate all datetimes including prior timesteps from targets
     all_dt = []
-    for dt_str in target_datetimes:
-        dt0 = datetime.datetime.fromisoformat(dt_str)
+    for dt0 in target_datetimes:
         for i in range(4, 0, -1):
             all_dt.append(dt0 - i * ddt)
         all_dt.append(dt0)
@@ -161,9 +160,6 @@ def netcdf_preloader(
                 nc_outs[station]['time'][t0:t_sample + 1] = \
                     tmp_arrays['time'][:t_sample_tmp + 1]
             tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
-
-    for station, coord in stations.items():
-        nc_outs[station].close()
 
     return {
         station: nc_outs[station].filepath()

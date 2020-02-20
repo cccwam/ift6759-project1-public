@@ -41,7 +41,7 @@ def global_mean(
                             df[f"{station_name}_GHI"].mean())
                 self.global_mean = (self.BND + self.DRA + self.FPK +
                                     self.GWN + self.PSU + self.SXF +
-                                    self.TBL) / 7.
+                                    self.TBL) / len(station_names)
 
         def call(self, inputs):
 

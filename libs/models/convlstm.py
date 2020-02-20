@@ -1,5 +1,7 @@
 """
-    Dummy ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
+    ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
+
+    This model is too small to achieve any performance.
 
 """
 import datetime
@@ -16,7 +18,7 @@ def my_conv_lstm_model_builder(
     """
         Builder function for the first convlstm model
 
-        This model is too small
+        This model is too small to achieve any performance.
 
     :param stations:
     :param target_time_offsets:
@@ -45,23 +47,23 @@ def my_conv_lstm_model_builder(
 
         return tf.keras.Model(encoder_input, encoder_output, name='encoder')
 
-    def my_classifier(input_size):
+    def my_head(input_size):
         """
-            This function return the classification head module.
+            This function return the head module.
         :param input_size:
-        :return: Keras model containing the classification head module
+        :return: Keras model containing the head module
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
 
         x = tf.keras.layers.Dense(4, activation=None)(clf_input)
 
-        return tf.keras.Model(clf_input, x, name='classifier')
+        return tf.keras.Model(clf_input, x, name='head')
 
-    def my_convlstm_model(my_cnn_encoder, my_classifier):
+    def my_convlstm_model(my_cnn_encoder, my_head):
         """
             This function aggregates the all modules for the model.
         :param my_cnn_encoder: Encoder which will extract features map.
-        :param my_classifier: Classification head
+        :param my_head: Classification head
         :return: Consolidation Keras model
         """
         # noinspection PyProtectedMember
@@ -70,7 +72,7 @@ def my_conv_lstm_model_builder(
 
         x = my_cnn_encoder(img_input)
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
-        x = my_classifier(all_inputs)
+        x = my_head(all_inputs)
 
         return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel')
 
@@ -80,13 +82,13 @@ def my_conv_lstm_model_builder(
         my_cnn_encoder.summary()
         print("")
 
-    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8)
+    my_head = my_head(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8)
     if verbose:
         print("")
-        my_classifier.summary()
+        my_head.summary()
         print("")
 
-    my_convlstm_model = my_convlstm_model(my_cnn_encoder, my_classifier)
+    my_convlstm_model = my_convlstm_model(my_cnn_encoder, my_head)
     if verbose:
         print("")
         my_convlstm_model.summary()

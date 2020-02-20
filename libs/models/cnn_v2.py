@@ -1,5 +1,5 @@
 """
-    Dummy ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
+    Simple vanilla CNN model but with more parameters than the v1 model
 
 """
 import datetime
@@ -14,11 +14,9 @@ def my_model_builder(
         config: typing.Dict[typing.AnyStr, typing.Any],
         verbose=True):
     """
-        Builder function for the first cnn model
+        Builder function for the second cnn model
 
-        This model is a vanilla CNN similar to the ConvLSTM_v2 in term of layers.
-        It has got much lower number of parameters (about 280k instead of 7m)
-        Compared to ConvLSTM_V2, vanilla CNN are much faster to train and the performance
+        This model is a bigger model than cnn_v1 (about 1.4m parameters)
 
 
     :param stations:
@@ -31,6 +29,7 @@ def my_model_builder(
     def my_cnn_encoder():
         """
             This function return the CNN encoder module, needed to extract features map.
+
         :return: Keras model containing the CNN encoder module
         """
         encoder_input = tf.keras.Input(shape=(5, 5, 50, 50), name='original_img')
@@ -71,7 +70,7 @@ def my_model_builder(
 
         return tf.keras.Model(encoder_input, encoder_output, name='encoder')
 
-    def my_classifier(input_size, dropout):
+    def my_head(input_size, dropout):
         """
             This function return the classification head module.
         :param input_size:
@@ -90,13 +89,13 @@ def my_model_builder(
 
         x = tf.keras.layers.Dense(4, activation=None)(x)
 
-        return tf.keras.Model(clf_input, x, name='classifier')
+        return tf.keras.Model(clf_input, x, name='head')
 
-    def my_cnn_model(my_cnn_encoder, my_classifier):
+    def my_cnn_model(my_cnn_encoder, my_head):
         """
             This function aggregates the all modules for the model.
         :param my_cnn_encoder: Encoder which will extract features map.
-        :param my_classifier: Classification head
+        :param my_head: Classification head
         :return: Consolidation Keras model
         """
         # noinspection PyProtectedMember
@@ -105,9 +104,9 @@ def my_model_builder(
 
         x = my_cnn_encoder(img_input)
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
-        x = my_classifier(all_inputs)
+        x = my_head(all_inputs)
 
-        return tf.keras.Model([img_input, metadata_input], x, name='cnn')
+        return tf.keras.Model([img_input, metadata_input], x, name='cnn_v2')
 
     model_hparams = config["model"]["hyper_params"]
 
@@ -119,17 +118,17 @@ def my_model_builder(
         my_cnn_encoder.summary()
         print("")
 
-    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + nb_metadata,
+    my_head = my_head(input_size=my_cnn_encoder.layers[-1].output_shape[1] + nb_metadata,
                                   dropout=model_hparams["dropout"])
     if verbose:
         print("")
-        my_classifier.summary()
+        my_head.summary()
         print("")
 
-    my_convlstm_model = my_cnn_model(my_cnn_encoder, my_classifier)
+    my_cnn_model = my_cnn_model(my_cnn_encoder, my_head)
     if verbose:
         print("")
-        my_convlstm_model.summary()
+        my_cnn_model.summary()
         print("")
 
-    return my_convlstm_model
+    return my_cnn_model

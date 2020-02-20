@@ -1,5 +1,5 @@
 """
-    Dummy ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
+    Simple vanilla CNN model
 
 """
 import datetime
@@ -59,9 +59,9 @@ def my_model_builder(
 
         return tf.keras.Model(encoder_input, encoder_output, name='encoder')
 
-    def my_classifier(input_size, dropout):
+    def my_head(input_size, dropout):
         """
-            This function return the classification head module.
+            This function return the head module.
         :param input_size:
         :param dropout:
         :return: Keras model containing the classification head module
@@ -78,13 +78,14 @@ def my_model_builder(
 
         x = tf.keras.layers.Dense(4, activation=None)(x)
 
-        return tf.keras.Model(clf_input, x, name='classifier')
+        return tf.keras.Model(clf_input, x, name='head')
 
-    def my_cnn_model(my_cnn_encoder, my_classifier):
+    def my_cnn_model(my_cnn_encoder, my_head):
         """
             This function aggregates the all modules for the model.
+
         :param my_cnn_encoder: Encoder which will extract features map.
-        :param my_classifier: Classification head
+        :param my_head: head
         :return: Consolidation Keras model
         """
         # noinspection PyProtectedMember
@@ -93,9 +94,9 @@ def my_model_builder(
 
         x = my_cnn_encoder(img_input)
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
-        x = my_classifier(all_inputs)
+        x = my_head(all_inputs)
 
-        return tf.keras.Model([img_input, metadata_input], x, name='cnn')
+        return tf.keras.Model([img_input, metadata_input], x, name='cnn_v1')
 
     model_hparams = config["model"]["hyper_params"]
 
@@ -107,17 +108,17 @@ def my_model_builder(
         my_cnn_encoder.summary()
         print("")
 
-    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + nb_metadata,
-                                  dropout=model_hparams["dropout"])
+    my_head = my_head(input_size=my_cnn_encoder.layers[-1].output_shape[1] + nb_metadata,
+                            dropout=model_hparams["dropout"])
     if verbose:
         print("")
-        my_classifier.summary()
+        my_head.summary()
         print("")
 
-    my_convlstm_model = my_cnn_model(my_cnn_encoder, my_classifier)
+    my_cnn_model = my_cnn_model(my_cnn_encoder, my_head)
     if verbose:
         print("")
-        my_convlstm_model.summary()
+        my_cnn_model.summary()
         print("")
 
-    return my_convlstm_model
+    return my_cnn_model

@@ -1,3 +1,7 @@
+"""
+    Benchmark model using the global mean as prediction
+
+"""
 import datetime
 import pickle
 import typing

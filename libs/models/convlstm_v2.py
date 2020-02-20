@@ -1,5 +1,7 @@
 """
-    Dummy ConvLSTM model inspired by https://keras.io/examples/conv_lstm/
+    ConvLSTM model v2
+
+    This model has got more parameters than the v1 (about 8m parameters).
 
 """
 import datetime
@@ -14,7 +16,7 @@ def my_conv_lstm_model_builder(
         config: typing.Dict[typing.AnyStr, typing.Any],
         verbose=True):
     """
-        Builder function for the first convlstm model
+        Builder function for the second convlstm model.
 
         This model is based on the ConvLSTM paper.
         https://papers.nips.cc/paper/5955-convolutional-lstm-network-a-machine-learning-approach-for-precipitation-nowcasting
@@ -52,12 +54,12 @@ def my_conv_lstm_model_builder(
 
         return tf.keras.Model(encoder_input, encoder_output, name='encoder')
 
-    def my_classifier(input_size, dropout):
+    def my_head(input_size, dropout):
         """
-            This function return the classification head module.
+            This function return the head module.
         :param input_size:
         :param dropout:
-        :return: Keras model containing the classification head module
+        :return: Keras model containing the head module
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
 
@@ -71,13 +73,13 @@ def my_conv_lstm_model_builder(
 
         x = tf.keras.layers.Dense(4, activation=None)(x)
 
-        return tf.keras.Model(clf_input, x, name='classifier')
+        return tf.keras.Model(clf_input, x, name='head')
 
-    def my_convlstm_model(my_cnn_encoder, my_classifier):
+    def my_convlstm_model(my_cnn_encoder, my_head):
         """
             This function aggregates the all modules for the model.
         :param my_cnn_encoder: Encoder which will extract features map.
-        :param my_classifier: Classification head
+        :param my_head: Classification head
         :return: Consolidation Keras model
         """
         # noinspection PyProtectedMember
@@ -86,9 +88,9 @@ def my_conv_lstm_model_builder(
 
         x = my_cnn_encoder(img_input)
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
-        x = my_classifier(all_inputs)
+        x = my_head(all_inputs)
 
-        return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel')
+        return tf.keras.Model([img_input, metadata_input], x, name='convLSTMModel_v2')
 
     model_hparams = config["model"]["hyper_params"]
 
@@ -98,14 +100,14 @@ def my_conv_lstm_model_builder(
         my_cnn_encoder.summary()
         print("")
 
-    my_classifier = my_classifier(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8,
+    my_head = my_head(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8,
                                   dropout=model_hparams["dropout"])
     if verbose:
         print("")
-        my_classifier.summary()
+        my_head.summary()
         print("")
 
-    my_convlstm_model = my_convlstm_model(my_cnn_encoder, my_classifier)
+    my_convlstm_model = my_convlstm_model(my_cnn_encoder, my_head)
     if verbose:
         print("")
         my_convlstm_model.summary()

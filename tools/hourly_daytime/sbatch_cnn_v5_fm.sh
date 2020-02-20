@@ -22,8 +22,8 @@
 # Example usage:
 #   sbatch ~/sbatch_template.sh
 
-LOCAL_GIT_REPO_FOLDER=~/ift6759-project-1-fm
-LOCAL_VENV_FOLDER=~/ift6759-project1-venv
+LOCAL_GIT_REPO_FOLDER=~/ift6759-project1
+LOCAL_VENV_FOLDER=~/py37_tf
 
 cd $SLURM_TMPDIR/
 cp -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/
@@ -35,7 +35,7 @@ source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
   --admin_cfg_path configs/admin/hourly_daytime_01_train.json \
-  --user_cfg_path configs/user/cnn_image_v10.json \
+  --user_cfg_path configs/user/cnn_image_v9.json \
   --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_daytime/$USER
 
 

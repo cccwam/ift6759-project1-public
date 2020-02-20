@@ -16,6 +16,7 @@ def data_loader_images_multimodal(
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
         data_mode='train',
+        clip_max_value=400
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
@@ -89,6 +90,9 @@ def data_loader_images_multimodal(
                 # Extract ground truth GHI from dataframe
                 targets_np = np.zeros([output_seq_len],
                                       dtype=np.float32)
+                # Prevent outliers
+                targets_np = np.clip(targets_np, a_min=None, a_max=clip_max_value)
+
                 for m in range(output_seq_len):
                     k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
                     targets_np[m] = dataframe[f"{station_name}_GHI"][k]
@@ -121,5 +125,5 @@ def data_loader_images_multimodal(
         image_generator, ((tf.float32, tf.float32), tf.float32),
         output_shapes=(
             ((tf.TensorShape([None, 5, 50, 50]), tf.TensorShape([8])),
-             tf.TensorShape([4]))).prefetch(2).cache()
-    )
+             tf.TensorShape([4])))
+    ).prefetch(tf.data.experimental.AUTOTUNE)

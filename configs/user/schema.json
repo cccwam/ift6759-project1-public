@@ -44,7 +44,7 @@
               ]
             },
             {
-              "pattern": "^.*\\.hdf5$"
+              "pattern": "^.*\\.tf$"
             }
           ],
           "description": "Online evaluation, pre-saved .h5 file for evaluation or undefined method of evaluation."
@@ -82,7 +82,8 @@
               },
               "required": [
                 "training",
-                "validation"
+                "validation",
+                "test"
               ]
             }
           },

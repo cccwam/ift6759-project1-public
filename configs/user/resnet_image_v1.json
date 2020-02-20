@@ -22,7 +22,8 @@
       "should_preprocess_data": false,
       "preprocessed_data_source": {
         "training": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/training",
-        "validation": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/validation"
+        "validation": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/validation",
+        "test": "/project/cq-training-1/project1/teams/team03/data/test_tmp"
       }
     }
   },

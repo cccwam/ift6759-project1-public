@@ -59,7 +59,7 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    preprocessed_data_source_path = config['data_loader']['hyper_params']['preprocessed_data_source']['validation']
+    preprocessed_data_source_path = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
     if config['data_loader']['hyper_params']['should_preprocess_data'] and (data_cache is None):
         print(f"Pre-processing the data and storing in {preprocessed_data_source_path} ...")
         netcdf_preloader(

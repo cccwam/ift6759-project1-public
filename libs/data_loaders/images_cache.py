@@ -20,6 +20,9 @@ def data_loader_images_multimodal(
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
+    This version clip to clip_max_value the GHI to prevent outliers
+    and also uses the prefetch function from tf (20% faster)
+
     Args:
         dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
             relevant timestamp values over the test period.

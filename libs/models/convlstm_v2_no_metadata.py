@@ -107,7 +107,7 @@ def my_conv_lstm_model_builder(
         print("")
 
     my_head = my_head(input_size=my_cnn_encoder.layers[-1].output_shape[1],
-                                  dropout=model_hparams["dropout"])
+                      dropout=model_hparams["dropout"])
     if verbose:
         print("")
         my_head.summary()

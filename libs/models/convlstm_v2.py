@@ -27,6 +27,7 @@ def my_conv_lstm_model_builder(
     :param verbose:
     :return:
     """
+
     def my_cnn_encoder():
         """
             This function return the CNN encoder module, needed to extract features map.
@@ -101,7 +102,7 @@ def my_conv_lstm_model_builder(
         print("")
 
     my_head = my_head(input_size=my_cnn_encoder.layers[-1].output_shape[1] + 8,
-                                  dropout=model_hparams["dropout"])
+                      dropout=model_hparams["dropout"])
     if verbose:
         print("")
         my_head.summary()

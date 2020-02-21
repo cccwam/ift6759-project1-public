@@ -58,21 +58,24 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    preprocessed_data_source_path = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
+    preprocessed_data = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
     should_preprocess_data = config['data_loader']['hyper_params']['should_preprocess_data']
     should_store_data_in_memory = config['data_loader']['hyper_params']['should_store_data_in_memory']
 
     if should_preprocess_data:
-        print(f"Pre-processing the data and storing in {preprocessed_data_source_path} ...")
+        print(f"Pre-processing the data and storing in {preprocessed_data} ...")
         preprocessed_data = netcdf_preloader(
             dataframe=dataframe,
             target_datetimes=target_datetimes,
             stations=stations,
-            path_output=preprocessed_data_source_path,
+            path_output=preprocessed_data,
+            # TODO: should_store_data_in_memory is currently ignored. Edit netcdf_preloader so that if
+            #  should_store_data_in_memory is true then netcdf_preloader returns the netcdf datastructure instead
+            #  of returning the path to the preprocessed .nc files
             should_store_data_in_memory=should_store_data_in_memory
         )
     else:
-        print(f"Using previously pre-processed data from {preprocessed_data_source_path} ...")
+        print(f"Using previously pre-processed data from {preprocessed_data} ...")
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,

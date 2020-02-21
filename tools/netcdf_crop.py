@@ -170,6 +170,9 @@ def netcdf_preloader(
     for station, coord in stations.items():
         nc_outs[station].close()
 
+    # TODO: Return in-memory data structure instead of writing it to disk if should_store_data_in_memory is true
+    return path_output
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

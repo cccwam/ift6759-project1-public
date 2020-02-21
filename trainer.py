@@ -19,20 +19,23 @@ _ = netCDF4  # surpress unused module warning
 
 def main(
         admin_config_path: typing.AnyStr,
+        validation_config_path: typing.AnyStr,
         user_config_path: typing.AnyStr,
         tensorboard_tracking_folder: typing.AnyStr
 ):
     admin_config_dict = helpers.load_dict(admin_config_path)
+    validation_config_dict = helpers.load_dict(validation_config_path)
     user_config_dict = helpers.load_dict(user_config_path)
 
     helpers.validate_admin_config(admin_config_dict)
+    helpers.validate_admin_config(validation_config_dict)
     helpers.validate_user_config(user_config_dict)
 
     training_source = user_config_dict['data_loader']['hyper_params']['preprocessed_data_source']['training']
     validation_source = user_config_dict['data_loader']['hyper_params']['preprocessed_data_source']['validation']
 
     train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict, training_source)
-    valid_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict, validation_source)
+    valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, validation_source)
 
     print("Eager mode", tf.executing_eagerly())
 
@@ -211,6 +214,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--admin_cfg_path', type=str,
                         help='path to the JSON config file used to store train set parameters')
+    parser.add_argument('-v', '--validation_cfg_path', type=str,
+                        help='path to the JSON config file used to store validation set parameters')
     parser.add_argument('-u', '--user_cfg_path', type=str, default=None,
                         help='path to the JSON config file used to store user model/dataloader parameters')
     parser.add_argument('-t', '--tensorboard_tracking_folder', type=str, default=None,
@@ -218,6 +223,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(
         admin_config_path=args.admin_cfg_path,
+        validation_config_path=args.validation_cfg_path,
         user_config_path=args.user_cfg_path,
         tensorboard_tracking_folder=args.tensorboard_tracking_folder
     )

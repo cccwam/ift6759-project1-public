@@ -54,6 +54,9 @@ def netcdf_preloader(
              If should_store_data_in_memory is false:
                a path to the location where the preprocessed data is stored
     """
+    if not should_store_data_in_memory and len(target_datetimes) > tmp_array_size:
+        raise MemoryError("In memory data larger than tmp array size.")
+
     if admin_config_file_path:
         admin_config_dict = helpers.load_dict(admin_config_file_path)
         dataframe_path = admin_config_dict['dataframe_path']
@@ -89,22 +92,23 @@ def netcdf_preloader(
     # Initialize output netcdf files (one for each station)
     nc_outs = {}
     for station, coord in stations.items():
-        nc_outs[station] = netCDF4.Dataset(
-            os.path.join(path_output, f'{station}.nc'),
-            'w')
-        nc_outs[station].createDimension('time', n_sample)
-        nc_outs[station].createDimension('lat', crop_size)
-        nc_outs[station].createDimension('lon', crop_size)
-        nc_outs[station].createDimension('channel', n_channels)
-        nc_outs[station].createDimension('timestep', n_timestep)
-        time = nc_outs[station].createVariable('time', 'f8', ('time',))
-        time.calendar = 'standard'
-        time.units = 'days since 1970-01-01 00:00:00'
-        nc_outs[station].createVariable('lat', 'f4', ('lat',))
-        nc_outs[station].createVariable('lon', 'f4', ('lon',))
-        nc_outs[station].createVariable(
-            f'data', 'f4', ('time', 'timestep', 'channel', 'lat', 'lon'), zlib=True,
-            chunksizes=(chunksizes, n_timestep, n_channels, crop_size, crop_size))
+        if should_store_data_in_memory:
+            nc_outs[station] = netCDF4.Dataset(
+                os.path.join(path_output, f'{station}.nc'),
+                'w')
+            nc_outs[station].createDimension('time', n_sample)
+            nc_outs[station].createDimension('lat', crop_size)
+            nc_outs[station].createDimension('lon', crop_size)
+            nc_outs[station].createDimension('channel', n_channels)
+            nc_outs[station].createDimension('timestep', n_timestep)
+            time = nc_outs[station].createVariable('time', 'f8', ('time',))
+            time.calendar = 'standard'
+            time.units = 'days since 1970-01-01 00:00:00'
+            nc_outs[station].createVariable('lat', 'f4', ('lat',))
+            nc_outs[station].createVariable('lon', 'f4', ('lon',))
+            nc_outs[station].createVariable(
+                f'data', 'f4', ('time', 'timestep', 'channel', 'lat', 'lon'), zlib=True,
+                chunksizes=(chunksizes, n_timestep, n_channels, crop_size, crop_size))
 
     # Initialize temporary arrays to store data to limit constantly writing to disk
     init = True
@@ -138,8 +142,9 @@ def netcdf_preloader(
                     i = np.where(lat_diff == lat_diff.min())[0][0]
                     lon_diff = np.abs(lon_loop - coord[1])
                     j = np.where(lon_diff == lon_diff.min())[0][0]
-                    nc_outs[station].variables['lat'][:] = lat_loop[i - dc:i + dc]
-                    nc_outs[station].variables['lon'][:] = lon_loop[j - dc:j + dc]
+                    if should_store_data_in_memory:
+                        nc_outs[station].variables['lat'][:] = lat_loop[i - dc:i + dc]
+                        nc_outs[station].variables['lon'][:] = lon_loop[j - dc:j + dc]
                     coord_ij[station] = (i, j)
                 init = False
 
@@ -156,16 +161,24 @@ def netcdf_preloader(
             nc_loop.close()
 
         if ((t_sample_tmp == (tmp_array_size - 1)) and (timestep_id == n_timestep - 1)) or (t == (len(all_dt) - 1)):
-            t0 = t_sample - t_sample_tmp
-            for station, coord in stations.items():
-                # Here we fill missing values with 0
-                nc_outs[station]['data'][t0:t_sample + 1, :, :, :, :] = \
-                    ma.filled(tmp_arrays[f"{station}"][:t_sample_tmp + 1, :, :, :, :], 0)
-                tmp_arrays[f"{station}"] = \
-                    ma.masked_all((tmp_array_size, n_timestep, n_channels, crop_size, crop_size))
-                nc_outs[station]['time'][t0:t_sample + 1] = \
-                    tmp_arrays['time'][:t_sample_tmp + 1]
-            tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
+            if should_store_data_in_memory:
+                t0 = t_sample - t_sample_tmp
+                for station, coord in stations.items():
+                    # Here we fill missing values with 0
+                    nc_outs[station]['data'][t0:t_sample + 1, :, :, :, :] = \
+                        ma.filled(tmp_arrays[f"{station}"][:t_sample_tmp + 1, :, :, :, :], 0)
+                    tmp_arrays[f"{station}"] = \
+                        ma.masked_all((tmp_array_size, n_timestep, n_channels, crop_size, crop_size))
+                    nc_outs[station]['time'][t0:t_sample + 1] = \
+                        tmp_arrays['time'][:t_sample_tmp + 1]
+                tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
+            else:
+                in_memory = {}
+                for station, coord in stations.items():
+                    in_memory[station] = (tmp_arrays[station][:t_sample_tmp + 1].astype(np.float32),
+                                          tmp_arrays["time"][:t_sample_tmp + 1].astype(np.float32),
+                                          'days since 1970-01-01 00:00:00')
+                return in_memory
 
     for station, coord in stations.items():
         nc_outs[station].close()

@@ -45,19 +45,23 @@ def data_loader_images_multimodal(
         output_seq_len = 4
 
         for station_name in stations.keys():
-            data_file = f"{station_name}.nc"
-            if isinstance(preprocessed_data, str):
-                nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file), 'r')
+            if preprocessed_data:
+                nc_var_data, nc_time_data, time_units = preprocessed_data[station_name]
             else:
-                nc = preprocessed_data[station_name]
-            nc_var = nc.variables['data']
-            nc_time = nc.variables['time']
+                data_file = f"{station_name}.nc"
+                if isinstance(preprocessed_data, str):
+                    nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file), 'r')
+                else:
+                    nc = preprocessed_data[station_name]
+                nc_var = nc.variables['data']
+                nc_time = nc.variables['time']
+                time_units = nc_time.units
 
             # match target datenums with indices in the netcdf file, we need to allow for
             # small mismatch in seconds due to the nature of num2date and date2num.
-            target_datenums = netCDF4.date2num(target_datetimes, nc_time.units,
-                                               nc_time.calendar)
-            nc_time_data = nc_time[:]
+            target_datenums = netCDF4.date2num(target_datetimes, time_units)
+            if not preprocessed_data:
+                nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
                 indices_in_nc[i] = \
@@ -66,7 +70,8 @@ def data_loader_images_multimodal(
             # Generate batch
             i_load_min = 0
             i_load_max = 5000
-            nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
+            if not preprocessed_data:
+                nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
 
                 metadata = np.zeros([8],

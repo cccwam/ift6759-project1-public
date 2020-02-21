@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import typing
+import math
 
 import netCDF4  # need to import this before tensorflow because of a bug
 import pandas as pd
@@ -19,6 +20,7 @@ def prepare_dataloader(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
+        preprocessed_data=None,
 ) -> tf.data.Dataset:
     """This function should be modified in order to prepare & return your own data loader.
     Note that you can use either the netCDF or HDF5 data. Each iteration over your data loader should return a
@@ -58,7 +60,8 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    preprocessed_data = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
+    if not preprocessed_data:
+        preprocessed_data = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
     # should_preprocess_data = config['data_loader']['hyper_params']['should_preprocess_data']
     # should_store_data_in_memory = config['data_loader']['hyper_params']['should_store_data_in_memory']
 
@@ -145,26 +148,32 @@ def generate_all_predictions(
     # We need to do the data preprocessing for all stations at once for
     # performance issues
     from tools.netcdf_crop import netcdf_preloader
-    netcdf_preloader(
-        dataframe=dataframe,
-        target_datetimes=target_datetimes,
-        stations=target_stations,
-        path_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
-        # TODO: should_store_data_in_memory is currently ignored. Edit netcdf_preloader so that if
-        #  should_store_data_in_memory is true then netcdf_preloader returns the netcdf datastructure instead
-        #  of returning the path to the preprocessed .nc files
-        should_store_data_in_memory=user_config['data_loader']['hyper_params']['should_store_data_in_memory'],
-    )
-    for station_idx, station_name in enumerate(target_stations):
-        # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
-        stations = {station_name: target_stations[station_name]}
-        print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
-        data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config)
-        model = prepare_model(stations, target_time_offsets, user_config)
-        station_preds = generate_predictions(data_loader, model, pred_count=len(target_datetimes))
-        assert len(station_preds) == len(target_datetimes), "number of predictions mismatch with requested datetimes"
-        predictions.append(station_preds)
-    return np.concatenate(predictions, axis=0)
+    n_per_eval = 200
+    for i in range(math.ceil(len(target_datetimes) / n_per_eval)):
+        sub_target_datetimes = target_datetimes[i * n_per_eval: (i+1) * n_per_eval]
+        data_cache = netcdf_preloader(
+            dataframe=dataframe,
+            target_datetimes=sub_target_datetimes,
+            stations=target_stations,
+            path_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
+            # TODO: should_store_data_in_memory is currently ignored. Edit netcdf_preloader so that if
+            #  should_store_data_in_memory is true then netcdf_preloader returns the netcdf datastructure instead
+            #  of returning the path to the preprocessed .nc files
+            should_store_data_in_memory=user_config['data_loader']['hyper_params']['should_store_data_in_memory'],
+        )
+        for station_idx, station_name in enumerate(target_stations):
+            if i == 0:
+                predictions.append([])
+            # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
+            stations = {station_name: target_stations[station_name]}
+            print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
+            data_loader = prepare_dataloader(dataframe, sub_target_datetimes, stations, target_time_offsets, user_config, preprocessed_data=data_cache)
+            model = prepare_model(stations, target_time_offsets, user_config)
+            station_preds = generate_predictions(data_loader, model, pred_count=len(sub_target_datetimes))
+            assert len(station_preds) == len(sub_target_datetimes), "number of predictions mismatch with requested datetimes"
+            predictions[station_idx].append(station_preds)
+    concat_batches = [np.concatenate(x, axis=0) for x in predictions]
+    return np.concatenate(concat_batches, axis=0)
 
 
 def parse_gt_ghi_values(

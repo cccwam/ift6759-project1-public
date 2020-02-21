@@ -1,0 +1,37 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.clearsky_v1",
+      "name": "my_model_builder"
+    },
+    "hyper_params": {
+      "nb_metadata": 12
+    },
+    "source": ""
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images_with_clearsky",
+      "name": "data_loader_images_multimodal"
+    },
+    "hyper_params": {
+      "admin_name": "hourly_daytime_shuffle_train"
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        3e-3
+      ],
+      "epochs": [
+        1
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        1
+      ]
+    }
+  }
+}

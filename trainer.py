@@ -24,13 +24,15 @@ def main(
 ):
     admin_config_dict = helpers.load_dict(admin_config_path)
     user_config_dict = helpers.load_dict(user_config_path)
-    validation_config_dict = helpers.load_dict(admin_config_path.replace('_train.json', '_validation.json'))
 
     helpers.validate_admin_config(admin_config_dict)
     helpers.validate_user_config(user_config_dict)
 
-    train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict)
-    valid_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, data_mode='validation')
+    training_source = user_config_dict['data_loader']['hyper_params']['preprocessed_data_source']['training']
+    validation_source = user_config_dict['data_loader']['hyper_params']['preprocessed_data_source']['validation']
+
+    train_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict, training_source)
+    valid_data_loader = helpers.get_online_data_loader(user_config_dict, admin_config_dict, validation_source)
 
     print("Eager mode", tf.executing_eagerly())
 

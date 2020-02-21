@@ -4,10 +4,13 @@ import json
 import os
 import typing
 
-import numpy as np
+import netCDF4  # need to import this before tensorflow because of a bug
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 import tqdm
+
+_ = netCDF4  # suppress unused module warning
 
 
 def prepare_dataloader(
@@ -18,21 +21,17 @@ def prepare_dataloader(
         config: typing.Dict[typing.AnyStr, typing.Any],
 ) -> tf.data.Dataset:
     """This function should be modified in order to prepare & return your own data loader.
-
     Note that you can use either the netCDF or HDF5 data. Each iteration over your data loader should return a
     2-element tuple containing the tensor that should be provided to the model as input, and the target values. In
     this specific case, you will not be able to provide the latter since the dataframe contains no GHI, and we are
     only interested in predictions, not training. Therefore, you must return a placeholder (or ``None``) as the second
     tuple element.
-
     Reminder: the dataframe contains imagery paths for every possible timestamp requested in ``target_datetimes``.
     However, we expect that you will use some of the "past" imagery (i.e. imagery at T<=0) for any T in
     ``target_datetimes``, but you should NEVER rely on "future" imagery to generate predictions (for T>0). We
     will be inspecting data loader implementations to ensure this is the case, and those who "cheat" will be
     dramatically penalized.
-
     See https://github.com/mila-iqia/ift6759/tree/master/projects/project1/evaluation.md for more information.
-
     Args:
         dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
             relevant timestamp values over the test period.
@@ -45,17 +44,23 @@ def prepare_dataloader(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
-
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
         by ``target_sequences``.
     """
     ################################## MODIFY BELOW ##################################
+    # WE ARE PROVIDING YOU WITH A DUMMY DATA GENERATOR FOR DEMONSTRATION PURPOSES.
+    # MODIFY EVERYTHINGIN IN THIS BLOCK AS YOU SEE FIT
 
     from libs import helpers
+    # from tools.netcdf_crop import netcdf_preloader
 
     helpers.validate_user_config(config)
+
+    preprocessed_data = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
+    # should_preprocess_data = config['data_loader']['hyper_params']['should_preprocess_data']
+    # should_store_data_in_memory = config['data_loader']['hyper_params']['should_store_data_in_memory']
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,
@@ -63,7 +68,7 @@ def prepare_dataloader(
         target_datetimes=target_datetimes,
         stations=stations,
         target_time_offsets=target_time_offsets,
-        data_mode='validation'
+        preprocessed_data=preprocessed_data
     )
 
     ################################### MODIFY ABOVE ##################################
@@ -77,16 +82,13 @@ def prepare_model(
         config: typing.Dict[typing.AnyStr, typing.Any],
 ) -> tf.keras.Model:
     """This function should be modified in order to prepare & return your own prediction model.
-
     See https://github.com/mila-iqia/ift6759/tree/master/projects/project1/evaluation.md for more information.
-
     Args:
         stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
         target_time_offsets: the list of timedeltas to predict GHIs for (by definition: [T=0, T+1h, T+3h, T+6h]).
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
-
     Returns:
         A ``tf.keras.Model`` object that can be used to generate new GHI predictions given imagery tensors.
     """
@@ -112,7 +114,7 @@ def generate_predictions(data_loader: tf.data.Dataset, model: tf.keras.Model, pr
     """Generates and returns model predictions given the data prepared by a data loader."""
     predictions = []
     with tqdm.tqdm("generating predictions", total=pred_count) as pbar:
-        for iter_idx, minibatch in enumerate(data_loader):
+        for iter_idx, minibatch in enumerate(data_loader.batch(64)):
             assert isinstance(minibatch, tuple) and len(minibatch) >= 2, \
                 "the data loader should load each minibatch as a tuple with model input(s) and target tensors"
             # remember: the minibatch should contain the input tensor(s) for the model as well as the GT (target)
@@ -137,9 +139,22 @@ def generate_all_predictions(
         dataframe: pd.DataFrame,
         user_config: typing.Dict[typing.AnyStr, typing.Any],
 ) -> np.ndarray:
-    """Generates and returns model predictions given the data prepared by a data loader."""
+    """Generates and returns model predictions g<iven the data prepared by a data loader."""
     # we will create one data loader per station to make sure we avoid mixups in predictions
     predictions = []
+    # We need to do the data preprocessing for all stations at once for
+    # performance issues
+    from tools.netcdf_crop import netcdf_preloader
+    netcdf_preloader(
+        dataframe=dataframe,
+        target_datetimes=target_datetimes,
+        stations=target_stations,
+        path_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
+        # TODO: should_store_data_in_memory is currently ignored. Edit netcdf_preloader so that if
+        #  should_store_data_in_memory is true then netcdf_preloader returns the netcdf datastructure instead
+        #  of returning the path to the preprocessed .nc files
+        should_store_data_in_memory=user_config['data_loader']['hyper_params']['should_store_data_in_memory'],
+    )
     for station_idx, station_name in enumerate(target_stations):
         # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
         stations = {station_name: target_stations[station_name]}

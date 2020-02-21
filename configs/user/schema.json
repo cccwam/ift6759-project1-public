@@ -65,7 +65,39 @@
         },
         "hyper_params": {
           "type": "object",
-          "description": "The hyper-parameters to use for this data loader."
+          "description": "The hyper-parameters to use for this data loader.",
+          "properties": {
+            "should_preprocess_data": {
+              "type": "boolean"
+            },
+            "should_store_data_in_memory": {
+              "type": "boolean"
+            },
+            "preprocessed_data_source": {
+              "type": "object",
+              "properties": {
+                "training": {
+                  "type": "string"
+                },
+                "validation": {
+                  "type": "string"
+                },
+                "test": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "training",
+                "validation",
+                "test"
+              ]
+            }
+          },
+          "required": [
+            "should_preprocess_data",
+            "should_store_data_in_memory",
+            "preprocessed_data_source"
+          ]
         }
       },
       "required": [

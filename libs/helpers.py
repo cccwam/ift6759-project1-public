@@ -32,7 +32,7 @@ def validate_user_config(user_config_dict):
 def get_online_data_loader(
         user_config_dict,
         admin_config_dict=None,
-        preprocessed_data_source_path=None,
+        preprocessed_data=None,
         dataframe=None,
         target_datetimes=None,
         stations=None,
@@ -48,7 +48,7 @@ def get_online_data_loader(
         * target_time_offsets
     If admin_config_dict is specified, it overwrites the parameters specified above.
 
-    :param preprocessed_data_source_path: A path to the folder containing the preprocessed data
+    :param preprocessed_data: A path to the folder containing the preprocessed data or an in-memory data structure
     :param user_config_dict: The user dictionary used to store user model/dataloader parameters
     :param admin_config_dict: The admin dictionary used to store train set parameters
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -81,7 +81,7 @@ def get_online_data_loader(
         stations=stations,
         target_time_offsets=target_time_offsets,
         config=user_config_dict,
-        preprocessed_data_source_path=preprocessed_data_source_path
+        preprocessed_data=preprocessed_data
     )
 
 

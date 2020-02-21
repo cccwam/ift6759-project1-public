@@ -70,6 +70,9 @@
             "should_preprocess_data": {
               "type": "boolean"
             },
+            "should_store_data_in_memory": {
+              "type": "boolean"
+            },
             "preprocessed_data_source": {
               "type": "object",
               "properties": {
@@ -92,6 +95,7 @@
           },
           "required": [
             "should_preprocess_data",
+            "should_store_data_in_memory",
             "preprocessed_data_source"
           ]
         }

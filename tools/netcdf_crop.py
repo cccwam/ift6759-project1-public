@@ -20,6 +20,7 @@ def netcdf_preloader(
         tmp_array_size=200,
         admin_config_file_path=None,
         path_output='.',
+        should_store_data_in_memory=False,
         dataframe=None,
         target_datetimes=None,
         stations=None
@@ -38,7 +39,9 @@ def netcdf_preloader(
     :param crop_size: The crop size around each station in pixels
     :param tmp_array_size:
     :param admin_config_file_path: The admin configuration file path
-    :param path_output: The folder where the outputted preprocessed netcdf files will be placed
+    :param path_output: The folder where the outputted preprocessed netcdf files will be placed if
+            should_store_data_in_memory is False
+    :param should_store_data_in_memory: Whether or not the output should be written to disk or not. See return value.
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
             relevant timestamp values over the test period.
     :param target_datetimes: a list of timestamps that your data loader should use to provide imagery for your model.
@@ -46,7 +49,10 @@ def netcdf_preloader(
             to predict. By definition, the GHI values must be provided for the offsets given by ``target_time_offsets``
             which are added to each timestamp (T=0) in this datetimes list.
     :param stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
-    :return: A dictionary containing the station names as keys and their preprocessed netcdf files as values
+    :return: If should_store_data_in_memory is true:
+               a data structure containing the preprocessed data.
+             If should_store_data_in_memory is false:
+               a path to the location where the preprocessed data is stored
     """
     if admin_config_file_path:
         admin_config_dict = helpers.load_dict(admin_config_file_path)

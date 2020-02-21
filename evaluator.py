@@ -19,7 +19,6 @@ def prepare_dataloader(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
-        data_cache = None,
 ) -> tf.data.Dataset:
     """This function should be modified in order to prepare & return your own data loader.
     Note that you can use either the netCDF or HDF5 data. Each iteration over your data loader should return a
@@ -60,13 +59,17 @@ def prepare_dataloader(
     helpers.validate_user_config(config)
 
     preprocessed_data_source_path = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
-    if config['data_loader']['hyper_params']['should_preprocess_data'] and (data_cache is None):
+    should_preprocess_data = config['data_loader']['hyper_params']['should_preprocess_data']
+    should_store_data_in_memory = config['data_loader']['hyper_params']['should_store_data_in_memory']
+
+    if should_preprocess_data:
         print(f"Pre-processing the data and storing in {preprocessed_data_source_path} ...")
-        netcdf_preloader(
+        preprocessed_data = netcdf_preloader(
             dataframe=dataframe,
             target_datetimes=target_datetimes,
             stations=stations,
-            path_output=preprocessed_data_source_path
+            path_output=preprocessed_data_source_path,
+            should_store_data_in_memory=should_store_data_in_memory
         )
     else:
         print(f"Using previously pre-processed data from {preprocessed_data_source_path} ...")
@@ -77,7 +80,7 @@ def prepare_dataloader(
         target_datetimes=target_datetimes,
         stations=stations,
         target_time_offsets=target_time_offsets,
-        preprocessed_data_source_path=preprocessed_data_source_path
+        preprocessed_data=preprocessed_data
     )
 
     ################################### MODIFY ABOVE ##################################
@@ -151,14 +154,11 @@ def generate_all_predictions(
     """Generates and returns model predictions g<iven the data prepared by a data loader."""
     # we will create one data loader per station to make sure we avoid mixups in predictions
     predictions = []
-    # We need to do the data preprocessing for all stations at once for
-    # performance issues
-    data_cache = prepare_dataloader(dataframe, target_datetimes, target_stations, target_time_offsets, user_config)
     for station_idx, station_name in enumerate(target_stations):
         # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
         stations = {station_name: target_stations[station_name]}
         print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
-        data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config, data_cache=True)
+        data_loader = prepare_dataloader(dataframe, target_datetimes, stations, target_time_offsets, user_config)
         model = prepare_model(stations, target_time_offsets, user_config)
         station_preds = generate_predictions(data_loader, model, pred_count=len(target_datetimes))
         assert len(station_preds) == len(target_datetimes), "number of predictions mismatch with requested datetimes"

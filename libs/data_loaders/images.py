@@ -15,7 +15,7 @@ def data_loader_images_multimodal(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
-        preprocessed_data_source_path=None
+        preprocessed_data=None
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
@@ -31,7 +31,7 @@ def data_loader_images_multimodal(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
-        preprocessed_data_source_path: A path to the folder containing the preprocessed data
+        preprocessed_data: A path to the folder containing the preprocessed data or an in-memory data structure
 
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
@@ -46,7 +46,10 @@ def data_loader_images_multimodal(
 
         for station_name in stations.keys():
             data_file = f"{station_name}.nc"
-            nc = netCDF4.Dataset(os.path.join(preprocessed_data_source_path, data_file), 'r')
+            if isinstance(preprocessed_data, str):
+                nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file), 'r')
+            else:
+                nc = preprocessed_data[station_name]
             nc_var = nc.variables['data']
             nc_time = nc.variables['time']
 

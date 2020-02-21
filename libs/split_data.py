@@ -103,7 +103,8 @@ def hourly_split(
 
 
 def hourly_split_daytime(
-        years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
+        years_splits=(2010, 2014, 2015, 2016), seed=987, shuffle=True,
+        **kwargs):
     random.seed(seed)
     df = helpers.remove_night_values(kwargs['_dataframe'])
     df = helpers.remove_null_path(df)
@@ -128,13 +129,16 @@ def hourly_split_daytime(
                     current_samples.append(
                         new_dt.strftime('%Y-%m-%dT%H:%M:%S'))
                     break
+            if shuffle:
+                random.shuffle(current_samples)
         resulting_splits.append(current_samples)
 
     return np.array(resulting_splits)
 
 
 def daily_split_daytime(
-        years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
+        years_splits=(2010, 2014, 2015, 2016), seed=987, shuffle=True,
+        **kwargs):
     random.seed(seed)
     df = helpers.remove_night_values(kwargs['_dataframe'])
     df = helpers.remove_null_path(df)
@@ -166,6 +170,8 @@ def daily_split_daytime(
                     break
                 if flag_break:
                     break
+            if shuffle:
+                random.shuffle(current_samples)
         resulting_splits.append(current_samples)
 
     return np.array(resulting_splits)

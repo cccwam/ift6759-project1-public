@@ -161,10 +161,8 @@ def netcdf_preloader(
                     tmp_arrays['time'][:t_sample_tmp + 1]
             tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
 
-    return {
-        station: nc_outs[station].filepath()
-        for station in stations
-    }
+    for station, coord in stations.items():
+        nc_outs[station].close()
 
 
 if __name__ == '__main__':

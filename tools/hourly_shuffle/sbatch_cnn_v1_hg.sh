@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --time=12:00:00
-#SBATCH --gres=gpu:k20:2
+#SBATCH --gres=gpu:k80:1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
-# -SBATCH --reservation=IFT6759_2020-01-10
+#SBATCH --reservation=IFT6759_2020-02-21
 
 # Summary:
 #   A template for launching a batch job to execute code from

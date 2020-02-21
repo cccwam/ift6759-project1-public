@@ -78,6 +78,9 @@
                 },
                 "validation": {
                   "type": "string"
+                },
+                "test": {
+                  "type": "string"
                 }
               },
               "required": [

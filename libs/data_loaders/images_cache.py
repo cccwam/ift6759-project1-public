@@ -15,8 +15,8 @@ def data_loader_images_multimodal(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
-        data_mode='train',
-        clip_max_value=400
+        preprocessed_data=None,
+        clip_max_value=None # After further EDA, it doesn't seem to be needed
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
@@ -49,13 +49,11 @@ def data_loader_images_multimodal(
         output_seq_len = 4
 
         for station_name in stations.keys():
-            data_file = f"preloader_{config['data_loader']['hyper_params']['admin_name']}_{station_name}.nc"
-            if data_mode == 'validation':
-                data_file = data_file.replace('_train_', '_validation_')
-
-            nc = netCDF4.Dataset(
-                os.path.join('/project/cq-training-1/project1/teams/team03/data',
-                             data_file), 'r')
+            data_file = f"{station_name}.nc"
+            if isinstance(preprocessed_data, str):
+                nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file), 'r')
+            else:
+                nc = preprocessed_data[station_name]
             nc_var = nc.variables['data']
             nc_time = nc.variables['time']
 

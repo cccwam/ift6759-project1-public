@@ -1,7 +1,7 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.cnn_v3",
+      "module": "libs.models.cnn_v2",
       "name": "my_model_builder"
     },
     "hyper_params": {
@@ -10,7 +10,7 @@
       ],
       "nb_metadata": 8
     },
-    "source": ""
+    "source": "/project/cq-training-1/project1/teams/team03/cnn_v2.my_model_builder_images.data_loader_images_multimodal.05-140759.98.tf"
   },
   "data_loader": {
     "definition": {

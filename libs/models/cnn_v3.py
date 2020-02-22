@@ -80,9 +80,9 @@ def my_model_builder(
         """
         clf_input = tf.keras.Input(shape=input_size, name='feature_map')
 
-        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.BatchNormalization()(clf_input)
         x = tf.keras.layers.Dropout(dropout)(x)
-        x = tf.keras.layers.Dense(256, activation=tf.keras.activations.relu)(clf_input)
+        x = tf.keras.layers.Dense(256, activation=tf.keras.activations.relu)(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dropout(dropout)(x)

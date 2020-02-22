@@ -1,7 +1,9 @@
 import argparse
 import datetime
 import os
+import stat
 import pickle
+from pathlib import Path
 
 import netCDF4
 import numpy as np
@@ -89,11 +91,18 @@ def netcdf_preloader(
     if n_sample < 256:
         chunksizes = n_sample
 
+    # Recursively creates and runs chmod ugo+rwx preprocessed_data_output
+    # Gives permissions for everyone (team03 and TAs) to read/write to the folder
+    wide_open_access = stat.S_IRWXU + stat.S_IRWXO + stat.S_IRWXG
+    os.makedirs(preprocessed_data_output, exist_ok=True, mode=wide_open_access)
+
     # Initialize output netcdf files (one for each station)
     nc_outs = {}
     for station, coord in stations.items():
         if not should_store_data_in_ram:
-            nc_outs[station] = netCDF4.Dataset(os.path.join(preprocessed_data_output, f'{station}.nc'), 'w')
+            station_path = os.path.join(preprocessed_data_output, f'{station}.nc')
+            Path(station_path).touch(mode=wide_open_access, exist_ok=True)
+            nc_outs[station] = netCDF4.Dataset(station_path, 'w')
             nc_outs[station].createDimension('time', n_sample)
             nc_outs[station].createDimension('lat', crop_size)
             nc_outs[station].createDimension('lon', crop_size)

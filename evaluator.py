@@ -147,38 +147,29 @@ def generate_all_predictions(
     # We need to do the data preprocessing for all stations at once for
     # performance issues
     from tools.netcdf_crop import netcdf_preloader
-    n_per_eval = 200
-    for i in range(math.ceil(len(target_datetimes) / n_per_eval)):
-        sub_target_datetimes = target_datetimes[i * n_per_eval: (i+1) * n_per_eval]
-        preprocessed_data = user_config['data_loader']['hyper_params']['preprocessed_data_source']['test']
-        should_preprocess_data = user_config['data_loader']['hyper_params']['should_preprocess_data']
-        if should_preprocess_data:
-            preprocessed_data = netcdf_preloader(
-                dataframe=dataframe,
-                target_datetimes=sub_target_datetimes,
-                stations=target_stations,
-                preprocessed_data_output=preprocessed_data,
-                should_store_data_in_ram=user_config['data_loader']['hyper_params']['should_store_data_in_ram'],
-            )
-        for station_idx, station_name in enumerate(target_stations):
-            if i == 0:
-                predictions.append([])
-            # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
-            stations = {station_name: target_stations[station_name]}
-            print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
-            data_loader = prepare_dataloader(
-                dataframe, sub_target_datetimes, stations, target_time_offsets, user_config, preprocessed_data
-            )
-            # do we really need to reload the model everytime?!
-            if i == 0 and station_idx == 0:
-                model = prepare_model(stations, target_time_offsets, user_config)
-            station_preds = generate_predictions(data_loader, model, pred_count=len(sub_target_datetimes))
-            station_preds = np.clip(station_preds, 0.0, 700.0)
-            print(station_preds.min(), station_preds.max())
-            assert len(station_preds) == len(sub_target_datetimes), "number of predictions mismatch with requested datetimes"
-            predictions[station_idx].append(station_preds)
-    concat_batches = [np.concatenate(x, axis=0) for x in predictions]
-    return np.concatenate(concat_batches, axis=0)
+    preprocessed_data = user_config['data_loader']['hyper_params']['preprocessed_data_source']['test']
+    should_preprocess_data = user_config['data_loader']['hyper_params']['should_preprocess_data']
+    if should_preprocess_data:
+        preprocessed_data = netcdf_preloader(
+            dataframe=dataframe,
+            target_datetimes=target_datetimes,
+            stations=target_stations,
+            preprocessed_data_output=preprocessed_data,
+            should_store_data_in_ram=user_config['data_loader']['hyper_params']['should_store_data_in_ram'],
+        )
+    predictions = []
+    for station_idx, station_name in enumerate(target_stations):
+        # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
+        stations = {station_name: target_stations[station_name]}
+        print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
+        data_loader = prepare_dataloader(
+            dataframe, target_datetimes, stations, target_time_offsets, user_config, preprocessed_data
+        )
+        model = prepare_model(stations, target_time_offsets, user_config)
+        station_preds = generate_predictions(data_loader, model, pred_count=len(target_datetimes))
+        assert len(station_preds) == len(target_datetimes), "number of predictions mismatch with requested datetimes"
+        predictions.append(station_preds)
+    return np.concatenate(predictions, axis=0)
 
 
 def parse_gt_ghi_values(

@@ -45,7 +45,7 @@ def data_loader_images_multimodal(
         output_seq_len = 4
 
         for station_name in stations.keys():
-            if preprocessed_data:
+            if preprocessed_data and (not isinstance(preprocessed_data, str)):
                 nc_var_data, nc_time_data, time_units = preprocessed_data[station_name]
             else:
                 data_file = f"{station_name}.nc"
@@ -60,7 +60,7 @@ def data_loader_images_multimodal(
             # match target datenums with indices in the netcdf file, we need to allow for
             # small mismatch in seconds due to the nature of num2date and date2num.
             target_datenums = netCDF4.date2num(target_datetimes, time_units)
-            if not preprocessed_data:
+            if (not preprocessed_data) or isinstance(preprocessed_data, str):
                 nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
@@ -70,12 +70,10 @@ def data_loader_images_multimodal(
             # Generate batch
             i_load_min = 0
             i_load_max = 5000
-            if not preprocessed_data:
+            if (not preprocessed_data) or isinstance(preprocessed_data, str):
                 nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
-
-                metadata = np.zeros([8],
-                                    dtype=np.float32)
+                metadata = np.zeros([8], dtype=np.float32)
                 metadata[0] = target_datetimes[i].year
                 metadata[0] /= 2020
                 metadata[1] = target_datetimes[i].month

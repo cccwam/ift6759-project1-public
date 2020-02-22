@@ -54,7 +54,7 @@ def netcdf_preloader(
              If should_store_data_in_memory is false:
                a path to the location where the preprocessed data is stored
     """
-    if not should_store_data_in_memory and len(target_datetimes) > tmp_array_size:
+    if should_store_data_in_memory and len(target_datetimes) > tmp_array_size:
         raise MemoryError("In memory data larger than tmp array size.")
 
     if admin_config_file_path:
@@ -86,13 +86,13 @@ def netcdf_preloader(
         all_dt.append(dt0)
 
     chunksizes = 256
-    if len(all_dt) < 256:
+    if len(n_sample) < 256:
         chunksizes = len(all_dt)
 
     # Initialize output netcdf files (one for each station)
     nc_outs = {}
     for station, coord in stations.items():
-        if should_store_data_in_memory:
+        if not should_store_data_in_memory:
             nc_outs[station] = netCDF4.Dataset(
                 os.path.join(path_output, f'{station}.nc'),
                 'w')
@@ -142,7 +142,7 @@ def netcdf_preloader(
                     i = np.where(lat_diff == lat_diff.min())[0][0]
                     lon_diff = np.abs(lon_loop - coord[1])
                     j = np.where(lon_diff == lon_diff.min())[0][0]
-                    if should_store_data_in_memory:
+                    if not should_store_data_in_memory:
                         nc_outs[station].variables['lat'][:] = lat_loop[i - dc:i + dc]
                         nc_outs[station].variables['lon'][:] = lon_loop[j - dc:j + dc]
                     coord_ij[station] = (i, j)
@@ -161,7 +161,7 @@ def netcdf_preloader(
             nc_loop.close()
 
         if ((t_sample_tmp == (tmp_array_size - 1)) and (timestep_id == n_timestep - 1)) or (t == (len(all_dt) - 1)):
-            if should_store_data_in_memory:
+            if not should_store_data_in_memory:
                 t0 = t_sample - t_sample_tmp
                 for station, coord in stations.items():
                     # Here we fill missing values with 0

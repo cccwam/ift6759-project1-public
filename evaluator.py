@@ -168,11 +168,15 @@ def generate_all_predictions(
             stations = {station_name: target_stations[station_name]}
             print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
             data_loader = prepare_dataloader(dataframe, sub_target_datetimes, stations, target_time_offsets, user_config, preprocessed_data=data_cache)
-            model = prepare_model(stations, target_time_offsets, user_config)
+            # do we really need to reload the model everytime?!
+            if i == 0 and station_idx == 0:
+                model = prepare_model(stations, target_time_offsets, user_config)
             station_preds = generate_predictions(data_loader, model, pred_count=len(sub_target_datetimes))
             assert len(station_preds) == len(sub_target_datetimes), "number of predictions mismatch with requested datetimes"
             predictions[station_idx].append(station_preds)
+    print(len(predictions), len(predictions[0]), len(predictions[0][0]))
     concat_batches = [np.concatenate(x, axis=0) for x in predictions]
+    print(len(concat_batches), len(concat_batches[0]))
     return np.concatenate(concat_batches, axis=0)
 
 

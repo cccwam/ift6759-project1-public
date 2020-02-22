@@ -172,11 +172,11 @@ def generate_all_predictions(
             if i == 0 and station_idx == 0:
                 model = prepare_model(stations, target_time_offsets, user_config)
             station_preds = generate_predictions(data_loader, model, pred_count=len(sub_target_datetimes))
+            station_preds = np.clip(station_preds, 0.0, 700.0)
+            print(station_preds.min(), station_preds.max())
             assert len(station_preds) == len(sub_target_datetimes), "number of predictions mismatch with requested datetimes"
             predictions[station_idx].append(station_preds)
-    print(len(predictions), len(predictions[0]), len(predictions[0][0]))
     concat_batches = [np.concatenate(x, axis=0) for x in predictions]
-    print(len(concat_batches), len(concat_batches[0]))
     return np.concatenate(concat_batches, axis=0)
 
 

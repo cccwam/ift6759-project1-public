@@ -35,6 +35,8 @@ def data_loader_images_multimodal(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
+        preprocessed_data: A path to the folder containing the preprocessed data or an in-memory data structure
+        clip_max_value:
 
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
@@ -51,8 +53,7 @@ def data_loader_images_multimodal(
         for station_name in stations.keys():
             data_file = f"{station_name}.nc"
             if isinstance(preprocessed_data, str):
-                nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file),
-                                     'r')
+                nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file), 'r')
             else:
                 nc = preprocessed_data[station_name]
             nc_var = nc.variables['data']
@@ -73,9 +74,7 @@ def data_loader_images_multimodal(
             i_load_max = 5000
             nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
-
-                metadata = np.zeros([8],
-                                    dtype=np.float32)
+                metadata = np.zeros([8], dtype=np.float32)
                 metadata[0] = target_datetimes[i].year
                 metadata[0] /= 2020
                 metadata[1] = target_datetimes[i].month

@@ -70,7 +70,7 @@
             "should_preprocess_data": {
               "type": "boolean"
             },
-            "should_store_data_in_memory": {
+            "should_store_data_in_ram": {
               "type": "boolean"
             },
             "preprocessed_data_source": {
@@ -95,7 +95,7 @@
           },
           "required": [
             "should_preprocess_data",
-            "should_store_data_in_memory",
+            "should_store_data_in_ram",
             "preprocessed_data_source"
           ]
         }

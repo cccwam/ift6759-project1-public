@@ -21,7 +21,7 @@
     },
     "hyper_params": {
       "should_preprocess_data": true,
-      "should_store_data_in_memory": true,
+      "should_store_data_in_ram": true,
       "preprocessed_data_source": {
         "training": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/training",
         "validation": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/validation",

@@ -55,8 +55,7 @@ def data_loader_images_multimodal(
 
             # match target datenums with indices in the netcdf file, we need to allow for
             # small mismatch in seconds due to the nature of num2date and date2num.
-            target_datenums = netCDF4.date2num(target_datetimes, nc_time.units,
-                                               nc_time.calendar)
+            target_datenums = netCDF4.date2num(target_datetimes, nc_time.units, nc_time.calendar)
             nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
@@ -68,9 +67,7 @@ def data_loader_images_multimodal(
             i_load_max = 5000
             nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
-
-                metadata = np.zeros([8 + 4],
-                                    dtype=np.float32)
+                metadata = np.zeros([8 + 4], dtype=np.float32)
                 metadata[0] = target_datetimes[i].year
                 metadata[0] /= 2020
                 metadata[1] = target_datetimes[i].month

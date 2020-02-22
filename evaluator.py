@@ -46,6 +46,7 @@ def prepare_dataloader(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
+        preprocessed_data: A path to the folder containing the preprocessed data or an in-memory data structure
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
@@ -60,10 +61,8 @@ def prepare_dataloader(
 
     helpers.validate_user_config(config)
 
-    if not preprocessed_data:
-        preprocessed_data = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
     # should_preprocess_data = config['data_loader']['hyper_params']['should_preprocess_data']
-    # should_store_data_in_memory = config['data_loader']['hyper_params']['should_store_data_in_memory']
+    # should_store_data_in_ram = config['data_loader']['hyper_params']['should_store_data_in_ram']
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,
@@ -151,15 +150,12 @@ def generate_all_predictions(
     n_per_eval = 200
     for i in range(math.ceil(len(target_datetimes) / n_per_eval)):
         sub_target_datetimes = target_datetimes[i * n_per_eval: (i+1) * n_per_eval]
-        data_cache = netcdf_preloader(
+        preprocessed_data = netcdf_preloader(
             dataframe=dataframe,
             target_datetimes=sub_target_datetimes,
             stations=target_stations,
-            path_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
-            # TODO: should_store_data_in_memory is currently ignored. Edit netcdf_preloader so that if
-            #  should_store_data_in_memory is true then netcdf_preloader returns the netcdf datastructure instead
-            #  of returning the path to the preprocessed .nc files
-            should_store_data_in_memory=user_config['data_loader']['hyper_params']['should_store_data_in_memory'],
+            preprocessed_data_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
+            should_store_data_in_ram=user_config['data_loader']['hyper_params']['should_store_data_in_ram'],
         )
         for station_idx, station_name in enumerate(target_stations):
             if i == 0:
@@ -167,7 +163,9 @@ def generate_all_predictions(
             # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
             stations = {station_name: target_stations[station_name]}
             print(f"preparing data loader & model for station '{station_name}' ({station_idx + 1}/{len(target_stations)})")
-            data_loader = prepare_dataloader(dataframe, sub_target_datetimes, stations, target_time_offsets, user_config, preprocessed_data=data_cache)
+            data_loader = prepare_dataloader(
+                dataframe, sub_target_datetimes, stations, target_time_offsets, user_config, preprocessed_data
+            )
             # do we really need to reload the model everytime?!
             if i == 0 and station_idx == 0:
                 model = prepare_model(stations, target_time_offsets, user_config)

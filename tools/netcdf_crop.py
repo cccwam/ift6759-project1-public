@@ -12,15 +12,15 @@ from libs import helpers
 
 
 # Script for preprocessing crop around stations
-# Usage: python netcdf_crop.py admin_config_file.json [crop_size] [path_output]
+# Usage: python netcdf_crop.py admin_config_file.json [crop_size] [preprocessed_data_preprocessed_data_output]
 
 
 def netcdf_preloader(
         crop_size=50,
         tmp_array_size=200,
         admin_config_file_path=None,
-        path_output='.',
-        should_store_data_in_memory=False,
+        preprocessed_data_output='.',
+        should_store_data_in_ram=False,
         dataframe=None,
         target_datetimes=None,
         stations=None
@@ -28,7 +28,7 @@ def netcdf_preloader(
     """
     Preprocess netcdf files which are related to target_datetimes and stations
 
-    The resulting preprocessed netcdf files will be stored in path_output
+    The resulting preprocessed netcdf files will be stored in preprocessed_data_output
 
     If admin_config_file_path is not specified, the following have to be specified:
         * dataframe
@@ -39,9 +39,9 @@ def netcdf_preloader(
     :param crop_size: The crop size around each station in pixels
     :param tmp_array_size:
     :param admin_config_file_path: The admin configuration file path
-    :param path_output: The folder where the outputted preprocessed netcdf files will be placed if
-            should_store_data_in_memory is False
-    :param should_store_data_in_memory: Whether or not the output should be written to disk or not. See return value.
+    :param preprocessed_data_output: The folder where the outputted preprocessed netcdf files will be placed if
+            should_store_data_in_ram is False
+    :param should_store_data_in_ram: If True, preprocessed data will be stored in ram. Otherwise, written to disk.
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
             relevant timestamp values over the test period.
     :param target_datetimes: a list of timestamps that your data loader should use to provide imagery for your model.
@@ -49,12 +49,12 @@ def netcdf_preloader(
             to predict. By definition, the GHI values must be provided for the offsets given by ``target_time_offsets``
             which are added to each timestamp (T=0) in this datetimes list.
     :param stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
-    :return: If should_store_data_in_memory is true:
+    :return: If should_store_data_in_ram is true:
                a data structure containing the preprocessed data.
-             If should_store_data_in_memory is false:
+             If should_store_data_in_ram is false:
                a path to the location where the preprocessed data is stored
     """
-    if should_store_data_in_memory and len(target_datetimes) > tmp_array_size:
+    if not should_store_data_in_ram and len(target_datetimes) > tmp_array_size:
         raise MemoryError("In memory data larger than tmp array size.")
 
     if admin_config_file_path:
@@ -92,10 +92,8 @@ def netcdf_preloader(
     # Initialize output netcdf files (one for each station)
     nc_outs = {}
     for station, coord in stations.items():
-        if not should_store_data_in_memory:
-            nc_outs[station] = netCDF4.Dataset(
-                os.path.join(path_output, f'{station}.nc'),
-                'w')
+        if not should_store_data_in_ram:
+            nc_outs[station] = netCDF4.Dataset(os.path.join(preprocessed_data_output, f'{station}.nc'), 'w')
             nc_outs[station].createDimension('time', n_sample)
             nc_outs[station].createDimension('lat', crop_size)
             nc_outs[station].createDimension('lon', crop_size)
@@ -142,7 +140,7 @@ def netcdf_preloader(
                     i = np.where(lat_diff == lat_diff.min())[0][0]
                     lon_diff = np.abs(lon_loop - coord[1])
                     j = np.where(lon_diff == lon_diff.min())[0][0]
-                    if not should_store_data_in_memory:
+                    if not should_store_data_in_ram:
                         nc_outs[station].variables['lat'][:] = lat_loop[i - dc:i + dc]
                         nc_outs[station].variables['lon'][:] = lon_loop[j - dc:j + dc]
                     coord_ij[station] = (i, j)
@@ -161,7 +159,7 @@ def netcdf_preloader(
             nc_loop.close()
 
         if ((t_sample_tmp == (tmp_array_size - 1)) and (timestep_id == n_timestep - 1)) or (t == (len(all_dt) - 1)):
-            if not should_store_data_in_memory:
+            if not should_store_data_in_ram:
                 t0 = t_sample - t_sample_tmp
                 for station, coord in stations.items():
                     # Here we fill missing values with 0
@@ -173,18 +171,19 @@ def netcdf_preloader(
                         tmp_arrays['time'][:t_sample_tmp + 1]
                 tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
             else:
-                in_memory = {}
+                preprocessed_data = {}
                 for station, coord in stations.items():
-                    in_memory[station] = (tmp_arrays[station][:t_sample_tmp + 1].astype(np.float32),
-                                          tmp_arrays["time"][:t_sample_tmp + 1].astype(np.float32),
-                                          'days since 1970-01-01 00:00:00')
-                return in_memory
+                    preprocessed_data[station] = (
+                        tmp_arrays[station][:t_sample_tmp + 1].astype(np.float32),
+                        tmp_arrays["time"][:t_sample_tmp + 1].astype(np.float32),
+                        'days since 1970-01-01 00:00:00'
+                    )
+                return preprocessed_data
 
     for station, coord in stations.items():
         nc_outs[station].close()
 
-    # TODO: Return in-memory data structure instead of writing it to disk if should_store_data_in_memory is true
-    return path_output
+    return preprocessed_data_output
 
 
 if __name__ == '__main__':

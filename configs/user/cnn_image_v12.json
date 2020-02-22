@@ -19,7 +19,7 @@
     },
     "hyper_params": {
       "should_preprocess_data": false,
-      "should_store_data_in_memory": false,
+      "should_store_data_in_ram": false,
       "preprocessed_data_source": {
         "training": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_01/training",
         "validation": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_01/validation",

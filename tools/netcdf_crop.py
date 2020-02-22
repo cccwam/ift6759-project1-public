@@ -191,7 +191,11 @@ if __name__ == '__main__':
     parser.add_argument('admin_config_file_path', help='admin cfg file')
     parser.add_argument('-c', '--crop_size', type=int, default=50,
                         help='crop size')
-    parser.add_argument('-o', '--output_path', type=str, default='.',
-                        help='output path')
+    parser.add_argument('-o', '--preprocessed_data_output', type=str, default='.',
+                        help='the path of the outputted preprocessed data')
     args = parser.parse_args()
-    netcdf_preloader(args.admin_config_file_path, args.crop_size, args.output_path)
+    netcdf_preloader(
+        admin_config_file_path=args.admin_config_file_path,
+        crop_size=args.crop_size,
+        preprocessed_data_output=args.preprocessed_data_output
+    )

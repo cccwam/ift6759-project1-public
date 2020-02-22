@@ -150,13 +150,16 @@ def generate_all_predictions(
     n_per_eval = 200
     for i in range(math.ceil(len(target_datetimes) / n_per_eval)):
         sub_target_datetimes = target_datetimes[i * n_per_eval: (i+1) * n_per_eval]
-        preprocessed_data = netcdf_preloader(
-            dataframe=dataframe,
-            target_datetimes=sub_target_datetimes,
-            stations=target_stations,
-            preprocessed_data_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
-            should_store_data_in_ram=user_config['data_loader']['hyper_params']['should_store_data_in_ram'],
-        )
+        preprocessed_data = user_config['data_loader']['hyper_params']['preprocessed_data_source']['test']
+        should_preprocess_data = user_config['data_loader']['hyper_params']['should_preprocess_data']
+        if should_preprocess_data:
+            preprocessed_data = netcdf_preloader(
+                dataframe=dataframe,
+                target_datetimes=sub_target_datetimes,
+                stations=target_stations,
+                preprocessed_data_output=preprocessed_data,
+                should_store_data_in_ram=user_config['data_loader']['hyper_params']['should_store_data_in_ram'],
+            )
         for station_idx, station_name in enumerate(target_stations):
             if i == 0:
                 predictions.append([])

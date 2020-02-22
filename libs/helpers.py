@@ -137,7 +137,7 @@ def prepare_model(
     Returns:
         A ``tf.keras.Model`` object that can be used to generate new GHI predictions given imagery tensors.
     """
-    default_model_path = '../model/best_model.h5'
+    default_model_path = '../model/best_model.tf'
     model_source = user_config_dict['model']['source']
 
     if model_source == 'online':

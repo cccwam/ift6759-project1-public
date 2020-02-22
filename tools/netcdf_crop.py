@@ -54,7 +54,7 @@ def netcdf_preloader(
              If should_store_data_in_ram is false:
                a path to the location where the preprocessed data is stored
     """
-    if not should_store_data_in_ram and len(target_datetimes) > tmp_array_size:
+    if should_store_data_in_ram and len(target_datetimes) > tmp_array_size:
         raise MemoryError("In memory data larger than tmp array size.")
 
     if admin_config_file_path:

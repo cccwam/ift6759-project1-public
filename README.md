@@ -20,7 +20,7 @@ at University of Montreal.
 python evaluator.py \
     pred_output.txt \
     configs/admin/dummy_test_cfg.json \
-    --user_cfg_path configs/user/ineichen_clear_sky_v1.json \
+    --user_cfg_path configs/user/cnn_image_v4_for_evaluator.json \
     --stats_output_path stat_output.txt
 ```
 
@@ -33,7 +33,8 @@ python evaluator.py \
 
 ```
 python trainer.py \
-    --admin_cfg_path configs/admin/dummy_train_cfg.json \
+    --admin_cfg_path configs/admin/daily_daytime_01_train.json \
+    --validation_cfg_path configs/admin/daily_daytime_01_validation.json \
     --user_cfg_path configs/user/ineichen_clear_sky_v1.json \
     --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/$USER
 ```

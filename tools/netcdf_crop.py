@@ -12,7 +12,7 @@ from libs import helpers
 
 
 # Script for preprocessing crop around stations
-# Usage: python netcdf_crop.py admin_config_file.json [crop_size] [preprocessed_data_preprocessed_data_output]
+# Usage: python netcdf_crop.py admin_config_file.json [crop_size] [preprocessed_data_output]
 
 
 def netcdf_preloader(

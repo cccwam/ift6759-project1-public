@@ -68,7 +68,6 @@ def data_loader_images_multimodal(
                 indices_in_nc[i] = \
                     np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
 
-            nc_var_data = nc_var[i_load_min:i_load_max, :, :, :, :]
             for i in range(0, len(target_datetimes)):
                 metadata = np.zeros([8], dtype=np.float32)
                 metadata[0] = target_datetimes[i].year

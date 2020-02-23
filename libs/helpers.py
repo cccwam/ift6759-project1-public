@@ -168,10 +168,10 @@ def generate_model_name(user_config_dict):
 
 def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
     """
-    Create a unique id for tensorboard for the experiment
+    Create a unique id for TensorBoard for the experiment
 
     :param experiment_name: name of experiment
-    :param tensorboard_tracking_folder: Path where to store tensorboard data and save trained model
+    :param tensorboard_tracking_folder: Path where to store TensorBoard data and save trained model
     """
     model_sub_folder = experiment_name + "-" + datetime.utcnow().isoformat()
     return os.path.join(tensorboard_tracking_folder, model_sub_folder)
@@ -219,3 +219,7 @@ def fill_ghi(dataframe):
         dataframe[f'{station}_GHI'] = (dataframe[f"{station}_GHI"]).interpolate(method='linear')
 
     return dataframe
+
+
+def get_module_name(module_dictionary):
+    return module_dictionary["definition"]["module"].split(".")[-1] + "." + module_dictionary["definition"]["name"]

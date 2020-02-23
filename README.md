@@ -26,20 +26,20 @@ python evaluator.py \
 
 * `args[0]`: Path where the raw model predictions should be saved (for visualization purposes).
 * `args[1]` Path to the JSON config file used to store test set/evaluation parameters.
-* `user_cfg_path` Path to the JSON config file used to store user model/dataloader parameters.
+* `user_cfg_path` Path to the JSON config file used to store user model, dataloader and trainer parameters.
 * `stats_output_path` Path where the prediction stats should be saved (for benchmarking).
 
 ## Trainer.py example usage
 
 ```
 python trainer.py \
-    --admin_cfg_path configs/admin/daily_daytime_01_train.json \
+    --training_cfg_path configs/admin/daily_daytime_01_train.json \
     --validation_cfg_path configs/admin/daily_daytime_01_validation.json \
     --user_cfg_path configs/user/ineichen_clear_sky_v1.json \
     --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/$USER
 ```
 
-* `admin_cfg_path`: Path to the JSON config file used to store train set parameters.
-* `user_cfg_path`: Path to the JSON config file used to store user model/dataloader parameters.
-* `tensorboard_tracking_folder`: Path where to store tensorboard data and save trained model. 
-
+* `training_cfg_path`: Path to the JSON config file used to store training set parameters.
+* `validation_cfg_path`: Path to the JSON config file used to store validation set parameters.
+* `user_cfg_path`: Path to the JSON config file used to store user model, dataloader and trainer parameters.
+* `tensorboard_tracking_folder`: Path where to store TensorBoard data and save trained model. 

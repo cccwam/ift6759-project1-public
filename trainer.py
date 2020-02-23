@@ -153,8 +153,10 @@ def train_models(user_config_dict, admin_config_dict,
                         epochs=epochs,
                         learning_rate=learning_rate,
                         patience=patience,
+                        # Fileformat must be hdf5, otherwise bug
+                        # https://github.com/tensorflow/tensorflow/issues/34127
                         checkpoints_path=os.path.join(tensorboard_log_dir,
-                                                      tensorboard_experiment_name + ".{epoch:02d}-{val_loss:.2f}.tf")
+                                                      tensorboard_experiment_name + ".{epoch:02d}-{val_loss:.2f}.hdf5")
                     )
                     variation_num += 1
 

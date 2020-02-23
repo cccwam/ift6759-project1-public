@@ -56,11 +56,11 @@ def data_loader_images_multimodal(
                 nc = preprocessed_data[station_name]
             nc_var = nc.variables['data']
             nc_time = nc.variables['time']
+            time_units = nc_time.units
 
             # match target datenums with indices in the netcdf file, we need to allow for
             # small mismatch in seconds due to the nature of num2date and date2num.
-            target_datenums = netCDF4.date2num(target_datetimes, nc_time.units,
-                                               nc_time.calendar)
+            target_datenums = netCDF4.date2num(target_datetimes, time_units)
             nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
@@ -92,7 +92,8 @@ def data_loader_images_multimodal(
                 targets_np = np.zeros([output_seq_len],
                                       dtype=np.float32)
                 # Prevent outliers
-                targets_np = np.clip(targets_np, a_min=None, a_max=clip_max_value)
+                if clip_max_value is not None:
+                    targets_np = np.clip(targets_np, a_min=None, a_max=clip_max_value)
 
                 for m in range(output_seq_len):
                     k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])

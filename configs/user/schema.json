@@ -44,7 +44,7 @@
               ]
             },
             {
-              "pattern": "^.*\\.tf$"
+              "pattern": "^.*\\.hdf5$"
             }
           ],
           "description": "Online evaluation, pre-saved .h5 file for evaluation or undefined method of evaluation."

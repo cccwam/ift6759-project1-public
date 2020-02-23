@@ -167,7 +167,7 @@ def train_models(
                         patience=patience,
                         checkpoints_path=os.path.join(
                             tensorboard_log_dir,
-                            tensorboard_experiment_name + ".{epoch:02d}-{val_loss:.2f}.tf"
+                            tensorboard_experiment_name + ".{epoch:02d}-{val_loss:.2f}.hdf5"
                         )
                     )
                     variation_num += 1

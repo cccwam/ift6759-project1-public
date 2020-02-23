@@ -1,14 +1,13 @@
 {
   "model": {
     "definition": {
-      "module": "libs.models.cnn_v2",
+      "module": "libs.models.cnn_v4",
       "name": "my_model_builder"
     },
     "hyper_params": {
       "dropout": [
-        0.15,
-        0.20,
-        0.3
+        0.2,
+        0.4
       ],
       "nb_metadata": 8
     },
@@ -16,7 +15,7 @@
   },
   "data_loader": {
     "definition": {
-      "module": "libs.data_loaders.images",
+      "module": "libs.data_loaders.images_cache",
       "name": "data_loader_images_multimodal"
     },
     "hyper_params": {
@@ -32,18 +31,18 @@
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        4e-4,
+        3e-3,
         3e-4,
-        2e-4
+        3e-5
       ],
       "epochs": [
-        200
+        100
       ],
       "batch_size": [
         64
       ],
       "patience": [
-        25
+        10
       ]
     }
   }

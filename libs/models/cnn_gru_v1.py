@@ -47,8 +47,8 @@ def my_model_builder(
                                    padding='same')(x)
 
         x = tf.keras.layers.MaxPool2D(pool_size=(2, 2),
-                                       data_format='channels_first',
-                                       padding='same')(x)
+                                      data_format='channels_first',
+                                      padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
@@ -57,8 +57,8 @@ def my_model_builder(
                                    padding='same')(x)
 
         x = tf.keras.layers.MaxPool2D(pool_size=(2, 2),
-                                       data_format='channels_first',
-                                       padding='same')(x)
+                                      data_format='channels_first',
+                                      padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
@@ -67,8 +67,8 @@ def my_model_builder(
                                    padding='same')(x)
 
         x = tf.keras.layers.MaxPool2D(pool_size=(2, 2),
-                                       data_format='channels_first',
-                                       padding='same')(x)
+                                      data_format='channels_first',
+                                      padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
@@ -77,9 +77,8 @@ def my_model_builder(
                                    padding='same')(x)
 
         x = tf.keras.layers.MaxPool2D(pool_size=(2, 2),
-                                       data_format='channels_first',
-                                       padding='same')(x)
-
+                                      data_format='channels_first',
+                                      padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3),
@@ -88,8 +87,8 @@ def my_model_builder(
                                    padding='same')(x)
 
         x = tf.keras.layers.MaxPool2D(pool_size=(2, 2),
-                                       data_format='channels_first',
-                                       padding='same')(x)
+                                      data_format='channels_first',
+                                      padding='same')(x)
 
         encoder_output = tf.keras.layers.Flatten()(x)
 
@@ -159,4 +158,3 @@ def my_model_builder(
         print("")
 
     return my_cnn_gru_model
-

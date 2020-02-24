@@ -34,14 +34,14 @@ source $SLURM_TMPDIR/venv/bin/activate
 
 
 python evaluator.py \
-    ~/ift6759-project1/pred_output_best_daily.txt \
-    configs/admin/daily_daytime_01_validation.json \
-    --user_cfg_path configs/user/cnn_image_daily_daytime_v1_pretrained.json \
-    --stats_output_path ~/ift6759-project1/pstat_output_best_daily.txt
+    ~/ift6759-project1/pred_output_best_daily_on_hourly.txt \
+    configs/admin/hourly_daytime_01_validation.json \
+    --user_cfg_path configs/user/cnn_image_hourly_daytime_v1_pretrained.json \
+    --stats_output_path ~/ift6759-project1/pstat_output_best_daily_on_hourly.txt
 
 
 python evaluator.py \
-    ~/ift6759-project1/pred_output_best_hourly.txt \
-    configs/admin/daily_daytime_01_validation.json \
-    --user_cfg_path configs/user/cnn_image_daily_daytime_v2_pretrained.json \
-    --stats_output_path ~/ift6759-project1/pstat_output_best_hourly.txt
+    ~/ift6759-project1/pred_output_best_hourly_on_hourly.txt \
+    configs/admin/hourly_daytime_01_validation.json \
+    --user_cfg_path configs/user/cnn_image_hourly_daytime_v2_pretrained.json \
+    --stats_output_path ~/ift6759-project1/pstat_output_best_hourly_on_hourly.txt

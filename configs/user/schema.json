@@ -44,7 +44,7 @@
               ]
             },
             {
-              "pattern": "^.*\\.tf$"
+              "pattern": "^.*\\.hdf5$"
             }
           ],
           "description": "Online evaluation, pre-saved .h5 file for evaluation or undefined method of evaluation."
@@ -70,9 +70,6 @@
             "should_preprocess_data": {
               "type": "boolean"
             },
-            "should_store_data_in_memory": {
-              "type": "boolean"
-            },
             "preprocessed_data_source": {
               "type": "object",
               "properties": {
@@ -95,7 +92,6 @@
           },
           "required": [
             "should_preprocess_data",
-            "should_store_data_in_memory",
             "preprocessed_data_source"
           ]
         }

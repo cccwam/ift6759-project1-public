@@ -15,8 +15,8 @@ def data_loader_images_multimodal(
         stations: typing.Dict[typing.AnyStr, typing.Tuple[float, float, float]],
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
-        preprocessed_data=None,
-        clip_max_value=None # After further EDA, it doesn't seem to be needed
+        preprocessed_data_path=None,
+        clip_max_value=None
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
@@ -50,17 +50,14 @@ def data_loader_images_multimodal(
 
         for station_name in stations.keys():
             data_file = f"{station_name}.nc"
-            if isinstance(preprocessed_data, str):
-                nc = netCDF4.Dataset(os.path.join(preprocessed_data, data_file), 'r')
-            else:
-                nc = preprocessed_data[station_name]
+            nc = netCDF4.Dataset(os.path.join(preprocessed_data_path, data_file), 'r')
             nc_var = nc.variables['data']
             nc_time = nc.variables['time']
-            time_units = nc_time.units
 
             # match target datenums with indices in the netcdf file, we need to allow for
             # small mismatch in seconds due to the nature of num2date and date2num.
-            target_datenums = netCDF4.date2num(target_datetimes, time_units)
+            target_datenums = netCDF4.date2num(target_datetimes, nc_time.units,
+                                               nc_time.calendar)
             nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):

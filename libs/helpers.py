@@ -32,11 +32,11 @@ def validate_user_config(user_config_dict):
 def get_online_data_loader(
         user_config_dict,
         admin_config_dict=None,
-        preprocessed_data=None,
         dataframe=None,
         target_datetimes=None,
         stations=None,
         target_time_offsets=None,
+        preprocessed_data_path=None
 ):
     """
     Get an online version of the data loader defined in user_config_dict
@@ -48,7 +48,6 @@ def get_online_data_loader(
         * target_time_offsets
     If admin_config_dict is specified, it overwrites the parameters specified above.
 
-    :param preprocessed_data: A path to the folder containing the preprocessed data or an in-memory data structure
     :param user_config_dict: The user dictionary used to store user model/dataloader parameters
     :param admin_config_dict: The admin dictionary used to store train set parameters
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -59,6 +58,7 @@ def get_online_data_loader(
             which are added to each timestamp (T=0) in this datetimes list.
     :param stations: a map of station names of interest paired with their coordinates (latitude, longitude, elevation).
     :param target_time_offsets: the list of timedeltas to predict GHIs for (by definition: [T=0, T+1h, T+3h, T+6h]).
+    :param preprocessed_data_path: A path to the folder containing the preprocessed data
     :return: An instance of user_config_dict['model']['definition']['module'].['name']
     """
     if admin_config_dict:
@@ -81,7 +81,7 @@ def get_online_data_loader(
         stations=stations,
         target_time_offsets=target_time_offsets,
         config=user_config_dict,
-        preprocessed_data=preprocessed_data
+        preprocessed_data_path=preprocessed_data_path
     )
 
 
@@ -137,7 +137,7 @@ def prepare_model(
     Returns:
         A ``tf.keras.Model`` object that can be used to generate new GHI predictions given imagery tensors.
     """
-    default_model_path = '../model/best_model.tf'
+    default_model_path = '../model/best_model.hdf5'
     model_source = user_config_dict['model']['source']
 
     if model_source == 'online':
@@ -159,7 +159,7 @@ def prepare_model(
 
 
 def generate_model_name(user_config_dict):
-    return "{}.{}.{}.tf".format(
+    return "{}.{}.{}.hdf5".format(
         user_config_dict['model']['definition']['module'],
         user_config_dict['model']['definition']['name'],
         uuid.uuid4().hex
@@ -168,10 +168,10 @@ def generate_model_name(user_config_dict):
 
 def get_tensorboard_experiment_id(experiment_name, tensorboard_tracking_folder):
     """
-    Create a unique id for tensorboard for the experiment
+    Create a unique id for TensorBoard for the experiment
 
     :param experiment_name: name of experiment
-    :param tensorboard_tracking_folder: Path where to store tensorboard data and save trained model
+    :param tensorboard_tracking_folder: Path where to store TensorBoard data and save trained model
     """
     model_sub_folder = experiment_name + "-" + datetime.utcnow().isoformat()
     return os.path.join(tensorboard_tracking_folder, model_sub_folder)
@@ -219,3 +219,7 @@ def fill_ghi(dataframe):
         dataframe[f'{station}_GHI'] = (dataframe[f"{station}_GHI"]).interpolate(method='linear')
 
     return dataframe
+
+
+def get_module_name(module_dictionary):
+    return module_dictionary["definition"]["module"].split(".")[-1] + "." + module_dictionary["definition"]["name"]

@@ -61,8 +61,11 @@ def data_loader_images_multimodal(
             nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
-                indices_in_nc[i] = \
-                    np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
+                try:
+                    indices_in_nc[i] = \
+                        np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
+                except IndexError as e:
+                    print(e, "i", i, "target_datenum", target_datenum)
 
             # Generate batch
             i_load_min = 0

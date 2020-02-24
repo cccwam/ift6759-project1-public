@@ -71,13 +71,12 @@ def netcdf_preloader(
     # Generate all datetimes including prior timesteps from targets
     all_dt = []
     for dt0 in target_datetimes:
-        for i in range(4, 0, -1):
-            all_dt.append(dt0 - i * ddt)
-        all_dt.append(dt0)
+        for i in range(4, -1, -1):
+            # To ensure to not have duplications
+            if (dt0 - i * ddt) not in all_dt:
+                all_dt.append(dt0 - i * ddt)
 
-    chunksizes = 256
-    if len(all_dt) < 256:
-        chunksizes = len(all_dt)
+    chunksizes = min(256, n_sample)
 
     # Initialize output netcdf files (one for each station)
     nc_outs = {}

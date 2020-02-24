@@ -33,15 +33,23 @@ module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
 
-python evaluator.py \
-    ~/ift6759-project1/pred_output_best_daily.txt \
-    configs/admin/daily_daytime_01_validation.json \
-    --user_cfg_path configs/user/cnn_image_daily_daytime_v1_pretrained.json \
-    --stats_output_path ~/ift6759-project1/stat_output_best_daily.txt
+for i in {0..29..1}
+    do
+      python evaluator.py \
+      ~/ift6759-project1/pred_output_best_daily_on_hourly_sample_${i}.txt \
+      configs/admin/hourly_sample_daytime_${i}_validation.json \
+      --user_cfg_path configs/user/cnn_image_hourly_daytime_v1_pretrained.json \
+      --stats_output_path ~/ift6759-project1/stat_output_best_daily_on_hourly_sample_${i}.txt
+
+    done
 
 
-python evaluator.py \
-    ~/ift6759-project1/pred_output_best_hourly.txt \
-    configs/admin/daily_daytime_01_validation.json \
-    --user_cfg_path configs/user/cnn_image_daily_daytime_v2_pretrained.json \
-    --stats_output_path ~/ift6759-project1/stat_output_best_hourly.txt
+
+for i in {0..29..1}
+    do
+      python evaluator.py \
+      ~/ift6759-project1/pred_output_best_hourly__sample_${i}.txt \
+      configs/admin/hourly_sample_daytime_${i}_validation.json \
+      --user_cfg_path configs/user/cnn_image_hourly_daytime_v2_pretrained.json \
+      --stats_output_path ~/ift6759-project1/stat_output_best_hourly__sample_${i}.txt
+    done

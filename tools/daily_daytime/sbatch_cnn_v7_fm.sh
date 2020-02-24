@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --time=12:00:00
-#SBATCH --gres=gpu:k80:1
+#SBATCH --gres=gpu:k20:2
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=8G
+#SBATCH --mem=6G
 # SBATCH --reservation=IFT6759_2020-02-21
 
 # Summary:
@@ -35,6 +35,7 @@ source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
   --admin_cfg_path configs/admin/daily_daytime_01_train.json \
+  --validation_cfg_path configs/admin/daily_daytime_01_validation.json \
   --user_cfg_path configs/user/cnn_image_daily_daytime_v1.json \
   --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/daily_daytime/$USER
 

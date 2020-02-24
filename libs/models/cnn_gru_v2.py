@@ -135,7 +135,7 @@ def my_model_builder(
         all_inputs = tf.keras.layers.Concatenate()([x, metadata_input])
         x = my_head(all_inputs)
 
-        return tf.keras.Model([img_input, metadata_input], x, name='cnn_gru_v1')
+        return tf.keras.Model([img_input, metadata_input], x, name='cnn_gru_v2')
 
     model_hparams = config["model"]["hyper_params"]
 

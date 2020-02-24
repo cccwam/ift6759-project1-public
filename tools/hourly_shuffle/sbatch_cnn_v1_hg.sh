@@ -35,5 +35,6 @@ source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
   --admin_cfg_path configs/admin/hourly_daytime_shuffle_train.json \
+  --validation_cfg_path configs/admin/hourly_daytime_shuffle_validation.json \
   --user_cfg_path configs/user/cnn_image_hourly_shuffle_v1.json \
  --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_shuffle/$USER

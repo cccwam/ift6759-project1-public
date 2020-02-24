@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 
 import jsonschema
 import tensorflow as tf
+import pvlib
+import numpy as np
 
 
 def import_from(module, name):
@@ -223,3 +225,47 @@ def fill_ghi(dataframe):
 
 def get_module_name(module_dictionary):
     return module_dictionary["definition"]["module"].split(".")[-1] + "." + module_dictionary["definition"]["name"]
+
+
+def get_clearsky_predictions(
+        stations,
+        station_name,
+        target_datetimes,
+        target_time_offsets,
+        index
+):
+    # Implementation of the clear sky model as described in pvlib
+    # documentation at
+    # https://pvlib-python.readthedocs.io/en/stable/clearsky.html
+    latitude, longitude = stations[station_name][0], stations[station_name][1]
+    altitude = stations[station_name][2]
+    times = pd.date_range(
+        start=target_datetimes[index].isoformat(),
+        end=(target_datetimes[index] + target_time_offsets[3]).isoformat(),
+        freq='1H'
+    )
+    solpos = pvlib.solarposition.get_solarposition(times, latitude, longitude)
+    apparent_zenith = solpos['apparent_zenith']
+    airmass = pvlib.atmosphere.get_relative_airmass(apparent_zenith)
+    pressure = pvlib.atmosphere.alt2pres(altitude)
+    airmass = pvlib.atmosphere.get_absolute_airmass(airmass,
+                                                    pressure)
+    linke_turbidity = pvlib.clearsky.lookup_linke_turbidity(
+        times, latitude, longitude)
+    dni_extra = pvlib.irradiance.get_extra_radiation(times)
+    # an input is a pandas Series, so solis is a DataFrame
+    ineichen = pvlib.clearsky.ineichen(
+        apparent_zenith,
+        airmass,
+        linke_turbidity,
+        altitude,
+        dni_extra
+    )
+    return np.array([
+            ineichen.ghi[0],
+            ineichen.ghi[1],
+            ineichen.ghi[3],
+            ineichen.ghi[6]
+        ],
+        dtype=np.float32
+    )

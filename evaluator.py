@@ -54,13 +54,8 @@ def prepare_dataloader(
     # MODIFY EVERYTHINGIN IN THIS BLOCK AS YOU SEE FIT
 
     from libs import helpers
-    # from tools.netcdf_crop import netcdf_preloader
 
     helpers.validate_user_config(config)
-
-    preprocessed_data = config['data_loader']['hyper_params']['preprocessed_data_source']['test']
-    # should_preprocess_data = config['data_loader']['hyper_params']['should_preprocess_data']
-    # should_store_data_in_memory = config['data_loader']['hyper_params']['should_store_data_in_memory']
 
     data_loader = helpers.get_online_data_loader(
         user_config_dict=config,
@@ -68,7 +63,7 @@ def prepare_dataloader(
         target_datetimes=target_datetimes,
         stations=stations,
         target_time_offsets=target_time_offsets,
-        preprocessed_data=preprocessed_data
+        preprocessed_data_path=config['data_loader']['hyper_params']['preprocessed_data_source']['test']
     )
 
     ################################### MODIFY ABOVE ##################################
@@ -142,19 +137,18 @@ def generate_all_predictions(
     """Generates and returns model predictions g<iven the data prepared by a data loader."""
     # we will create one data loader per station to make sure we avoid mixups in predictions
     predictions = []
-    # We need to do the data preprocessing for all stations at once for
-    # performance issues
+    ################################### TEAM 3's REQUIRED EDIT ##################################
+    # Justification:
+    # We need to start by pre processing all stations to be able to satisfy the 30 minute evaluation restriction
     from tools.netcdf_crop import netcdf_preloader
-    netcdf_preloader(
-        dataframe=dataframe,
-        target_datetimes=target_datetimes,
-        stations=target_stations,
-        path_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test'],
-        # TODO: should_store_data_in_memory is currently ignored. Edit netcdf_preloader so that if
-        #  should_store_data_in_memory is true then netcdf_preloader returns the netcdf datastructure instead
-        #  of returning the path to the preprocessed .nc files
-        should_store_data_in_memory=user_config['data_loader']['hyper_params']['should_store_data_in_memory'],
-    )
+    if user_config['data_loader']['hyper_params']['should_preprocess_data']:
+        netcdf_preloader(
+            dataframe=dataframe,
+            target_datetimes=target_datetimes,
+            stations=target_stations,
+            path_output=user_config['data_loader']['hyper_params']['preprocessed_data_source']['test']
+        )
+    ################################### TEAM 3's REQUIRED EDIT ##################################
     for station_idx, station_name in enumerate(target_stations):
         # usually, we would create a single data loader for all stations, but we just want to avoid trouble...
         stations = {station_name: target_stations[station_name]}

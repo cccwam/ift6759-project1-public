@@ -16,7 +16,6 @@
     },
     "hyper_params": {
       "should_preprocess_data": false,
-      "should_store_data_in_memory": false,
       "preprocessed_data_source": {
         "training": "/project/cq-training-1/project1/teams/team03/data/training",
         "validation": "/project/cq-training-1/project1/teams/team03/data/validation",

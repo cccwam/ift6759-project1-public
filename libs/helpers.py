@@ -8,6 +8,7 @@ import jsonschema
 import tensorflow as tf
 import pvlib
 import numpy as np
+import pandas as pd
 
 
 def import_from(module, name):

@@ -1,0 +1,42 @@
+{
+  "model": {
+    "definition": {
+      "module": "libs.models.clearsky_v1",
+      "name": "my_model_builder"
+    },
+    "hyper_params": {
+      "nb_metadata": 12
+    },
+    "source": "/project/cq-training-1/project1/teams/team03/clearsky_v1.my_model_builder_images_with_clearsky.data_loader_images_multimodal.01-37013.20.hdf5"
+  },
+  "data_loader": {
+    "definition": {
+      "module": "libs.data_loaders.images_with_clearsky",
+      "name": "data_loader_images_multimodal"
+    },
+    "hyper_params": {
+      "should_preprocess_data": true,
+      "preprocessed_data_source": {
+        "training": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_01/training",
+        "validation": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_01/validation",
+        "test": "/project/cq-training-1/project1/teams/team03/data/bootstrap_tmp_clearsky"
+      }
+    }
+  },
+  "trainer": {
+    "hyper_params": {
+      "lr_rate": [
+        3e-3
+      ],
+      "epochs": [
+        1
+      ],
+      "batch_size": [
+        32
+      ],
+      "patience": [
+        1
+      ]
+    }
+  }
+}

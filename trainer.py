@@ -40,8 +40,10 @@ def main(
     training_source = user_config_dict['data_loader']['hyper_params']['preprocessed_data_source']['training']
     validation_source = user_config_dict['data_loader']['hyper_params']['preprocessed_data_source']['validation']
 
-    training_data_loader = helpers.get_online_data_loader(user_config_dict, training_config_dict, training_source)
-    validation_data_loader = helpers.get_online_data_loader(user_config_dict, validation_config_dict, validation_source)
+    training_data_loader = helpers.get_online_data_loader(
+        user_config_dict, training_config_dict, preprocessed_data_path=training_source)
+    validation_data_loader = helpers.get_online_data_loader(
+        user_config_dict, validation_config_dict, preprocessed_data_path=validation_source)
 
     print("Eager mode", tf.executing_eagerly())
 

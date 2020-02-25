@@ -85,8 +85,11 @@ def data_loader_images_multimodal(
                 targets_np = np.zeros([output_seq_len],
                                       dtype=np.float32)
                 for m in range(output_seq_len):
-                    k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
-                    targets_np[m] = dataframe[f"{station_name}_GHI"][k]
+                    try:
+                        k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
+                        targets_np[m] = dataframe[f"{station_name}_GHI"][k]
+                    except KeyError:
+                        print("Warning: target datetime not in dataframe")
 
                 # Loading all data in memory greatly speeds up things, but if we move to much larger
                 # sample size and crop size this might need to be done differently.

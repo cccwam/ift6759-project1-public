@@ -71,10 +71,9 @@ def netcdf_preloader(
     # Generate all datetimes including prior timesteps from targets
     all_dt = []
     for dt0 in target_datetimes:
-        for i in range(4, -1, -1):
-            # To ensure to not have duplications
-            if (dt0 - i * ddt) not in all_dt:
-                all_dt.append(dt0 - i * ddt)
+        for i in range(4, 0, -1):
+            all_dt.append(dt0 - i * ddt)
+        all_dt.append(dt0)
 
     chunksizes = min(256, n_sample)
 

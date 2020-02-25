@@ -36,9 +36,9 @@ source $SLURM_TMPDIR/venv/bin/activate
 for i in {0..29..1}
     do
       python evaluator.py \
-      ~/ift6759-project1/pred_output_clearsky_on_hourly_sample_${i}.txt \
+      ~/ift6759-project1/pred_output_clearsky_test_${i}.txt \
       configs/admin/hourly_sample_daytime_${i}_test.json \
       --user_cfg_path configs/user/benchmark_clearsky_hourly_daytime_pretrained.json \
-      --stats_output_path ~/ift6759-project1/stat_output_clearsky_on_hourly_sample_${i}.txt
+      --stats_output_path ~/ift6759-project1/stat_output_clearsky_test_${i}.txt
 
     done

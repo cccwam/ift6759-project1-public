@@ -94,11 +94,29 @@ def prepare_model(
 
     helpers.validate_user_config(config)
 
-    model = helpers.prepare_model(
-        user_config_dict=config,
-        stations=stations,
-        target_time_offsets=target_time_offsets
-    )
+
+    # Multi GPU setup
+    nb_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
+    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, nb_gpus))])
+    print("------------")
+    print('Number of available GPU devices: {}'.format(nb_gpus))
+    print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
+    print("------------")
+
+    if mirrored_strategy is not None and mirrored_strategy.num_replicas_in_sync > 1:
+        with mirrored_strategy.scope():
+            model = helpers.prepare_model(
+                user_config_dict=config,
+                stations=stations,
+                target_time_offsets=target_time_offsets
+            )
+    else:
+        model = helpers.prepare_model(
+            user_config_dict=config,
+            stations=stations,
+            target_time_offsets=target_time_offsets
+        )
+
 
     ################################### MODIFY ABOVE ##################################
 

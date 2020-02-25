@@ -75,9 +75,7 @@ def netcdf_preloader(
             all_dt.append(dt0 - i * ddt)
         all_dt.append(dt0)
 
-    chunksizes = 256
-    if len(all_dt) < 256:
-        chunksizes = len(all_dt)
+    chunksizes = min(256, n_sample)
 
     # Initialize output netcdf files (one for each station)
     nc_outs = {}

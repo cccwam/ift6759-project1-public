@@ -16,7 +16,7 @@ def data_loader_images_multimodal(
         target_time_offsets: typing.List[datetime.timedelta],
         config: typing.Dict[typing.AnyStr, typing.Any],
         preprocessed_data_path=None,
-        clip_max_value=400
+        clip_max_value=None
 ) -> tf.data.Dataset:
     """Satellite images data loader.
 
@@ -35,7 +35,6 @@ def data_loader_images_multimodal(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
-        preprocessed_data_path: A path to the folder containing the preprocessed data
 
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
@@ -62,8 +61,11 @@ def data_loader_images_multimodal(
             nc_time_data = nc_time[:]
             indices_in_nc = np.zeros(len(target_datenums), dtype='i8')
             for i, target_datenum in enumerate(target_datenums):
-                indices_in_nc[i] = \
-                    np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
+                try:
+                    indices_in_nc[i] = \
+                        np.where(np.isclose(nc_time_data, target_datenum, atol=0.001))[0][0]
+                except IndexError as e:
+                    print(e, "i", i, "target_datenum", target_datenum)
 
             # Generate batch
             i_load_min = 0
@@ -90,11 +92,15 @@ def data_loader_images_multimodal(
                 targets_np = np.zeros([output_seq_len],
                                       dtype=np.float32)
                 # Prevent outliers
-                targets_np = np.clip(targets_np, a_min=None, a_max=clip_max_value)
+                if clip_max_value is not None:
+                    targets_np = np.clip(targets_np, a_min=None, a_max=clip_max_value)
 
                 for m in range(output_seq_len):
-                    k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
-                    targets_np[m] = dataframe[f"{station_name}_GHI"][k]
+                    try:
+                        k = dataframe.index.get_loc(target_datetimes[i] + target_time_offsets[m])
+                        targets_np[m] = dataframe[f"{station_name}_GHI"][k]
+                    except KeyError:
+                        print("Warning: target datetime not in dataframe")
 
                 # Loading all data in memory greatly speeds up things, but if we move to much larger
                 # sample size and crop size this might need to be done differently.

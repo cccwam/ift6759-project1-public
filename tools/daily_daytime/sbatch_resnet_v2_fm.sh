@@ -34,6 +34,7 @@ source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
   --admin_cfg_path configs/admin/daily_daytime_01_train.json \
+  --validation_cfg_path configs/admin/daily_daytime_01_validation.json \
   --user_cfg_path configs/user/resnet_image_v2.json \
   --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/daily_daytime/$USER
 

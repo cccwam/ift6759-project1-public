@@ -15,7 +15,12 @@
       "name": "data_loader_images_multimodal"
     },
     "hyper_params": {
-      "admin_name": "hourly_daytime_shuffle_train"
+      "should_preprocess_data": false,
+      "preprocessed_data_source": {
+        "training": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_shuffle_01/training",
+        "validation": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_shuffle_01/validation",
+        "test": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_shuffle_01/test"
+      }
     }
   },
   "trainer": {

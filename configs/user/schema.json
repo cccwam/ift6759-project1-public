@@ -6,11 +6,11 @@
       "type": "object",
       "properties": {
         "module": {
-          "description": "The python module to load.",
+          "description": "The python module to load",
           "type": "string"
         },
         "name": {
-          "description": "The python name to load.",
+          "description": "The python name to load",
           "type": "string"
         }
       },
@@ -30,7 +30,7 @@
         },
         "hyper_params": {
           "type": "object",
-          "description": "The hyper-parameters to use for this model during training.",
+          "description": "The hyper-parameters to use for this model during training",
           "dropout": {
             "type": "array"
           }
@@ -47,7 +47,7 @@
               "pattern": "^.*\\.hdf5$"
             }
           ],
-          "description": "Online evaluation, pre-saved .h5 file for evaluation or undefined method of evaluation."
+          "description": "Online evaluation, pre-saved .hdf5 file for evaluation or undefined method of evaluation"
         }
       },
       "required": [
@@ -65,7 +65,7 @@
         },
         "hyper_params": {
           "type": "object",
-          "description": "The hyper-parameters to use for this data loader.",
+          "description": "The hyper-parameters to use for this data loader",
           "properties": {
             "should_preprocess_data": {
               "type": "boolean"
@@ -104,6 +104,7 @@
     },
     "trainer": {
       "type": "object",
+      "description": "The hyper-parameters to use for the trainer",
       "properties": {
         "hyper_params": {
           "type": "object",

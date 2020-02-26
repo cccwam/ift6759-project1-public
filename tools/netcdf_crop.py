@@ -36,7 +36,7 @@ def netcdf_preloader(
     If admin_config_file is specified, it overwrites the parameters specified above.
 
     :param crop_size: The crop size around each station in pixels
-    :param tmp_array_size:
+    :param tmp_array_size: nb of timestamps to fit in temporary array
     :param admin_config_file_path: The admin configuration file path
     :param path_output: The folder where the outputted preprocessed netcdf files will be
     :param dataframe: a pandas dataframe that provides the netCDF file path (or HDF5 file path and offset) for all
@@ -105,7 +105,10 @@ def netcdf_preloader(
         tmp_arrays[f"{station}"] = ma.masked_all((tmp_array_size, n_timestep, n_channels, crop_size, crop_size))
     tmp_arrays["time"] = ma.masked_all((tmp_array_size,))
 
-    # Loop through all timesteps and load images
+    # Loop through all timesteps and load images. The sequence moves through
+    # T-60min, T-45min, T-30min, T-15min, T0 and store those in the timestep
+    # dimension in the netcdf files. A temporary array is used in case the number
+    # of timestamps to process would be to big for memory.
     for t, dt in enumerate(tqdm.tqdm(all_dt)):
         at_t0 = not ((t + 1) % n_timestep)
         t_sample = t // n_timestep

@@ -201,6 +201,12 @@ def compile_model(model, learning_rate):
 
 
 def remove_night_values(dataframe):
+    """Remove nighttime values from a GHI dataframe
+
+    :param dataframe: pandas dataframe
+    :return: pandas dataframe with nighttime values removes
+    """
+
     return dataframe[(dataframe.DRA_DAYTIME == 1) |
                      (dataframe.TBL_DAYTIME == 1) |
                      (dataframe.BND_DAYTIME == 1) |
@@ -211,6 +217,12 @@ def remove_night_values(dataframe):
 
 
 def remove_null_path(dataframe):
+    """Remove entries with missing netcdf path
+
+    :param dataframe: pandas dataframe
+    :return: pandas dataframe with entries with missing netcdf path removed
+    """
+
     return dataframe[dataframe['ncdf_path'] != 'nan']
 
 

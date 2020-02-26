@@ -10,7 +10,7 @@ import numpy as np
 from libs import helpers
 
 # Script for generating config files for training/validation/test split
-# Usage: python split_data.py [-c path_to_catalog.pkl] [-l cfg_name_{0}.json]
+# Usage: python split_data.py [-c path_to_catalog.pkl] [-l cfg_name_{0}.json] [-m method_name]
 
 default_catalog_path = '/project/cq-training-1/project1/data/catalog.helios.public.20100101-20160101.pkl'
 
@@ -55,6 +55,13 @@ def write_cfg_file(json_file, params):
 
 def lightweight_year_split(
         years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
+    """Generate dataset of daily timestamps.
+
+    :param years_splits: (initial_training_year, final_training_year, final_validation_year, final_test_year)
+    :param seed: random seed for experiment reproducibility
+    :return: numpy array of datetime objects corresponding to the selected timestamps
+    """
+
     random.seed(seed)
     resulting_splits = []
 
@@ -79,6 +86,13 @@ def lightweight_year_split(
 
 def hourly_split(
         years_splits=(2010, 2014, 2015, 2016), seed=987, **kwargs):
+    """Generate dataset of hourly timestamps.
+
+    :param years_splits: (initial_training_year, final_training_year, final_validation_year, final_test_year)
+    :param seed: random seed for experiment reproducibility
+    :return: numpy array of datetime objects corresponding to the selected timestamps
+    """
+
     random.seed(seed)
     resulting_splits = []
 
@@ -105,6 +119,14 @@ def hourly_split(
 def hourly_split_daytime(
         years_splits=(2010, 2014, 2015, 2016), seed=987, shuffle=True,
         **kwargs):
+    """Generate dataset of hourly daytime timestamps.
+
+    :param years_splits: (initial_training_year, final_training_year, final_validation_year, final_test_year)
+    :param seed: random seed for experiment reproducibility
+    :param kwargs: dictionary must contain reference to the dataframe (kwargs['_dataframe'])
+    :return: numpy array of datetime objects corresponding to the selected timestamps
+    """
+
     random.seed(seed)
     df = helpers.remove_night_values(kwargs['_dataframe'])
     df = helpers.remove_null_path(df)
@@ -139,6 +161,14 @@ def hourly_split_daytime(
 def daily_split_daytime(
         years_splits=(2010, 2014, 2015, 2016), seed=987, shuffle=True,
         **kwargs):
+    """Generate dataset of daily daytime timestamps.
+
+    :param years_splits: (initial_training_year, final_training_year, final_validation_year, final_test_year)
+    :param seed: random seed for experiment reproducibility
+    :param kwargs: dictionary must contain reference to the dataframe (kwargs['_dataframe'])
+    :return: numpy array of datetime objects corresponding to the selected timestamps
+    """
+
     random.seed(seed)
     df = helpers.remove_night_values(kwargs['_dataframe'])
     df = helpers.remove_null_path(df)

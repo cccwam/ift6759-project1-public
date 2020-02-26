@@ -17,4 +17,7 @@ pyyaml
 h5py
 pvlib
 tables
-
+matplotlib
+numpy
+tensorboard
+jupyter

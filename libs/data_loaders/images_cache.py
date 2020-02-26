@@ -35,12 +35,13 @@ def data_loader_images_multimodal(
         config: configuration dictionary holding any extra parameters that might be required by the user. These
             parameters are loaded automatically if the user provided a JSON file in their submission. Submitting
             such a JSON file is completely optional, and this argument can be ignored if not needed.
+        preprocessed_data_path: A path to the folder containing the preprocessed data
+        clip_max_value: If defined, sets this value as the maximum for possible GHI value
 
     Returns:
         A ``tf.data.Dataset`` object that can be used to produce input tensors for your model. One tensor
         must correspond to one sequence of past imagery data. The tensors must be generated in the order given
         by ``target_sequences``.
-        :param data_mode:
     """
 
     def image_generator():

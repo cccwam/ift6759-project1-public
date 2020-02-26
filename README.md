@@ -20,7 +20,7 @@ at University of Montreal.
 python evaluator.py \
     pred_output.txt \
     configs/admin/dummy_test_cfg.json \
-    --user_cfg_path configs/user/cnn_image_v4_for_evaluator.json \
+    --user_cfg_path eval_user_cfg.json \
     --stats_output_path stat_output.txt
 ```
 
@@ -28,6 +28,12 @@ python evaluator.py \
 * `args[1]` Path to the JSON config file used to store test set/evaluation parameters.
 * `user_cfg_path` Path to the JSON config file used to store user model, dataloader and trainer parameters.
 * `stats_output_path` Path where the prediction stats should be saved (for benchmarking).
+
+IMPORTANT: The evaluation step first preprocess data and writes netcdf files to disk.
+This is the path specified in the [data_loader -> hyper_params -> preprocessed_data_source -> test]
+section of user_cfg_path. The default path provided should have read/write permission for
+everyone. If multiple tests are to be run concurrently, they must point to
+different test path to avoid overwriting files from another test.
 
 ## Trainer.py example usage
 

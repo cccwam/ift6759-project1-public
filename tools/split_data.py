@@ -7,7 +7,7 @@ from datetime import timedelta, date, datetime
 
 import numpy as np
 
-import helpers
+from libs import helpers
 
 # Script for generating config files for training/validation/test split
 # Usage: python split_data.py [-c path_to_catalog.pkl] [-l cfg_name_{0}.json] [-m method_name]

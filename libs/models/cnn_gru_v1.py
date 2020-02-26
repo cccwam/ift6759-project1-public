@@ -115,7 +115,7 @@ def my_model_builder(
 
         return tf.keras.Model(clf_input, x, name='head')
 
-    def my_cnn_gru_model(my_cnn_encoder, my_head, timestep=5):
+    def my_cnn_gru_model(my_cnn_encoder, my_head):
         """
             This function aggregates the all modules for the model.
         :param my_cnn_encoder: Encoder which will extract features map.

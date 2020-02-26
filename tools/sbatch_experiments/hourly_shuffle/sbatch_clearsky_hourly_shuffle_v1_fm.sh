@@ -33,8 +33,7 @@ module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
-  --admin_cfg_path configs/admin/hourly_daytime_01_train.json \
-  --validation_cfg_path configs/admin/hourly_daytime_01_validation.json \
- --user_cfg_path configs/user/benchmark_clearsky_hourly.json \
- --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_daytime/$USER
-
+  --admin_cfg_path configs/admin/hourly_daytime_shuffle_train.json \
+  --validation_cfg_path configs/admin/hourly_daytime_shuffle_validation.json \
+  --user_cfg_path configs/user/benchmark_clearsky_hourly_shuffle.json \
+  --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_shuffle/$USER

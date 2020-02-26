@@ -3,7 +3,7 @@
 #SBATCH --gres=gpu:k20:1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=6G
-# SBATCH --reservation=IFT6759_2020-02-21
+# -SBATCH --reservation=IFT6759_2020-02-21
 
 # Summary:
 #   A template for launching a batch job to execute code from
@@ -32,13 +32,14 @@ module load python/3.7.4
 module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
+python evaluator.py \
+    ~/ift6759-project1/pred_output_best_daily.txt \
+    configs/admin/daily_daytime_01_validation.json \
+    --user_cfg_path configs/user/cnn_image_daily_daytime_v1_pretrained.json \
+    --stats_output_path ~/ift6759-project1/stat_output_best_daily.txt
 
-for i in {0..29..1}
-    do
-      python evaluator.py \
-      ~/ift6759-project1/pred_output_clearsky_on_hourly_sample_${i}.txt \
-      configs/admin/hourly_sample_daytime_${i}_validation.json \
-      --user_cfg_path configs/user/benchmark_clearsky_hourly_daytime_pretrained.json \
-      --stats_output_path ~/ift6759-project1/stat_output_clearsky_on_hourly_sample_${i}.txt
-
-    done
+python evaluator.py \
+    ~/ift6759-project1/pred_output_best_hourly.txt \
+    configs/admin/daily_daytime_01_validation.json \
+    --user_cfg_path configs/user/cnn_image_daily_daytime_v2_pretrained.json \
+    --stats_output_path ~/ift6759-project1/stat_output_best_hourly.txt

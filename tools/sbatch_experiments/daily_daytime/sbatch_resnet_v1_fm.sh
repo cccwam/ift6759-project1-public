@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=12:00:00
-#SBATCH --gres=gpu:k80:2
+#SBATCH --gres=gpu:k20:2
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=10000M
 # -SBATCH --reservation=IFT6759_2020-01-10
@@ -32,15 +32,8 @@ module load python/3.7.4
 module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
-
 python trainer.py \
   --admin_cfg_path configs/admin/daily_daytime_01_train.json \
   --validation_cfg_path configs/admin/daily_daytime_01_validation.json \
-  --user_cfg_path configs/user/cnn_image_v5.json \
+  --user_cfg_path configs/user/resnet_image_v1.json \
   --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/daily_daytime/$USER
-
-
-#python trainer.py \
-# --admin_cfg_path configs/admin/daily_daytime_01_train.json \
-# --user_cfg_path configs/user/benchmark_clearsky_daily_daytime.json \
-# --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/daily_daytime/$USER

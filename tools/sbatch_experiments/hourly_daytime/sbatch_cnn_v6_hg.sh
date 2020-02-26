@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --time=12:00:00
-#SBATCH --gres=gpu:k20:1
+#SBATCH --gres=gpu:k20:2
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=6G
-# SBATCH --reservation=IFT6759_2020-02-21
+#SBATCH --mem=8G
+# -SBATCH --reservation=IFT6759_2020-01-10
 
 # Summary:
 #   A template for launching a batch job to execute code from
@@ -22,8 +22,8 @@
 # Example usage:
 #   sbatch ~/sbatch_template.sh
 
-LOCAL_GIT_REPO_FOLDER=~/ift6759-project1
-LOCAL_VENV_FOLDER=~/py37_tf
+LOCAL_GIT_REPO_FOLDER=~/ift6759-project-1-fm
+LOCAL_VENV_FOLDER=~/ift6759-project1-venv
 
 cd $SLURM_TMPDIR/
 cp -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/
@@ -32,13 +32,8 @@ module load python/3.7.4
 module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
-
-for i in {0..29..1}
-    do
-      python evaluator.py \
-      ~/ift6759-project1/pred_output_clearsky_test_${i}.txt \
-      configs/admin/hourly_sample_daytime_${i}_test.json \
-      --user_cfg_path configs/user/benchmark_clearsky_hourly_daytime_pretrained.json \
-      --stats_output_path ~/ift6759-project1/stat_output_clearsky_test_${i}.txt
-
-    done
+python trainer.py \
+  --admin_cfg_path configs/admin/hourly_daytime_01_train.json \
+  --validation_cfg_path configs/admin/hourly_daytime_01_validation.json \
+  --user_cfg_path configs/user/cnn_image_v14.json \
+  --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_daytime/$USER

@@ -14,6 +14,12 @@ at University of Montreal.
 * requirements.txt
   * All the requirements necessary to run the code.
 
+## Sbatch job example
+
+The the folder tools, there's a file called sbatch_template.sh.
+It is currently set up to run a training of our best model configuration.
+Simply run `sbatch sbatch_template.sh` to launch the training job.
+
 ## Evaluator.py example usage
 
 ```

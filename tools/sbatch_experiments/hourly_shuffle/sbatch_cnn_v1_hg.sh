@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --time=10:00:00
-#SBATCH --gres=gpu:k20:0
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
-# -SBATCH --reservation=IFT6759_2020-01-10
+#SBATCH --time=12:00:00
+#SBATCH --gres=gpu:k80:1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=8G
+# -SBATCH --reservation=IFT6759_2020-02-21
 
 # Summary:
 #   A template for launching a batch job to execute code from
@@ -22,8 +22,8 @@
 # Example usage:
 #   sbatch ~/sbatch_template.sh
 
-LOCAL_GIT_REPO_FOLDER=~/ift6759-project1
-LOCAL_VENV_FOLDER=~/py37_tf
+LOCAL_GIT_REPO_FOLDER=~/ift6759-project-1-fm
+LOCAL_VENV_FOLDER=~/ift6759-project1-venv
 
 cd $SLURM_TMPDIR/
 cp -a $LOCAL_GIT_REPO_FOLDER/. $SLURM_TMPDIR/
@@ -35,6 +35,5 @@ source $SLURM_TMPDIR/venv/bin/activate
 python trainer.py \
   --admin_cfg_path configs/admin/hourly_daytime_shuffle_train.json \
   --validation_cfg_path configs/admin/hourly_daytime_shuffle_validation.json \
- --user_cfg_path configs/user/benchmark_clearsky_hourly_shuffle.json \
- --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_shuffle/$USER
-
+  --user_cfg_path configs/user/cnn_image_hourly_shuffle_v1.json \
+  --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/hourly_shuffle/$USER

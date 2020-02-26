@@ -79,6 +79,7 @@ def netcdf_preloader(
 
     # Initialize output netcdf files (one for each station)
     nc_outs = {}
+    os.makedirs(path_output, exist_ok=True)
     for station, coord in stations.items():
         nc_outs[station] = netCDF4.Dataset(
             os.path.join(path_output, f'{station}.nc'),

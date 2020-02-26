@@ -47,13 +47,7 @@ def main(
 
     print("Eager mode", tf.executing_eagerly())
 
-    # Multi GPU setup
-    nb_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
-    mirrored_strategy = tf.distribute.MirroredStrategy(["/gpu:" + str(i) for i in range(min(2, nb_gpus))])
-    print("------------")
-    print('Number of available GPU devices: {}'.format(nb_gpus))
-    print('Number of used GPU devices: {}'.format(mirrored_strategy.num_replicas_in_sync))
-    print("------------")
+    mirrored_strategy = helpers.get_mirrored_strategy()
 
     train_models(
         user_config_dict=user_config_dict,

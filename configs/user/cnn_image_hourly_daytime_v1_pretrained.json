@@ -22,7 +22,7 @@
       "preprocessed_data_source": {
         "training": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_01/training",
         "validation": "/project/cq-training-1/project1/teams/team03/data/hourly_daytime_01/validation",
-        "test": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/test"
+        "test": "/project/cq-training-1/project1/teams/team03/data/bootstrap_tmp"
       }
     }
   },

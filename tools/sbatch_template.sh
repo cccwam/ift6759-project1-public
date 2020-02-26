@@ -3,7 +3,7 @@
 #SBATCH --gres=gpu:k80:1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10000M
-#SBATCH --reservation=IFT6759_2020-01-10
+# -SBATCH --reservation=IFT6759_2020-01-10
 
 # Summary:
 #   A template for launching a batch job to execute code from

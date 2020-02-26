@@ -11,8 +11,7 @@
       "nb_metadata": 8
     },
     "source": ""
-  }
- },
+  },
   "data_loader": {
     "definition": {
       "module": "libs.data_loaders.images_cache",

@@ -151,6 +151,9 @@ def generate_all_predictions(
     # Justification:
     # We need to start by pre processing all stations to be able to satisfy the 30 minute evaluation restriction
     from tools.netcdf_crop import netcdf_preloader
+    from libs import helpers
+
+    helpers.validate_user_config(user_config)
     if user_config['data_loader']['hyper_params']['should_preprocess_data']:
         netcdf_preloader(
             dataframe=dataframe,

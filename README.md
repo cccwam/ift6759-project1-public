@@ -3,6 +3,12 @@
 Project 1 solution from Team 3 in IFT6759: Advanced Projects
 at University of Montreal.
 
+Team members:
+* Blaise Gauvin St-Denis 
+* François Mercier 
+* Helgi Tomas Gislason
+* Ilyas Amaniss
+
 ## Notable files
 
 * trainer.py

@@ -114,7 +114,7 @@ def train_models(
     hp_learning_rate = hp.HParam('learning_rate', hp.Discrete(trainer_hyper_params["lr_rate"]))
     hp_patience = hp.HParam('patience', hp.Discrete(trainer_hyper_params["patience"]))
 
-    data_loader = training_data_loader.batch(hp_batch_size.domain.values[0])
+    training_dataset = training_data_loader.batch(hp_batch_size.domain.values[0])
     validation_dataset = validation_data_loader.batch(hp_batch_size.domain.values[0])
 
     # Main loop to iterate over all possible hyper parameters
@@ -158,12 +158,12 @@ def train_models(
                     tensorboard_log_dir = os.path.join(tensorboard_experiment_id, str(variation_num))
                     print("Start variation id:", tensorboard_log_dir)
                     train_model(
-                        dataset=data_loader,
                         model=model,
+                        training_dataset=training_dataset,
+                        validation_dataset=validation_dataset,
                         tensorboard_log_dir=tensorboard_log_dir,
                         hparams=hparams,
                         mirrored_strategy=mirrored_strategy,
-                        validation_dataset=validation_dataset,
                         epochs=epochs,
                         learning_rate=learning_rate,
                         patience=patience,
@@ -181,25 +181,26 @@ def train_models(
 
 
 def train_model(
-        dataset,
         model,
+        training_dataset,
+        validation_dataset,
         tensorboard_log_dir,
         hparams,
         mirrored_strategy,
-        validation_dataset,
         epochs,
         learning_rate,
         patience,
         checkpoints_path
 ):
     """
-    Training loop for a model and its hyper parametersm dataset
+    The training loop for a single model
 
     :param model: The tf.keras.Model to train
+    :param training_dataset: The training dataset
+    :param validation_dataset: The validation dataset to evaluate training progress
     :param tensorboard_log_dir: Path of where to store TensorFlow logs
     :param hparams: A dictionary of TensorBoard.plugins.hparams.api.hp.HParam to track on TensorBoard
     :param mirrored_strategy: A tf.distribute.MirroredStrategy on how many GPUs to use during training
-    :param validation_dataset: The validation dataset to evaluate training progress
     :param epochs: The epochs hyper parameter
     :param learning_rate: The learning rate hyper parameter
     :param patience: The early stopping patience hyper parameter
@@ -222,7 +223,7 @@ def train_model(
     ]
 
     compiled_model.fit(
-        dataset,
+        training_dataset,
         epochs=epochs,
         callbacks=callbacks,
         validation_data=validation_dataset

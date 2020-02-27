@@ -30,6 +30,9 @@ The user configuration file schema can be found at configs/user/schema.json. All
 contains the following configurable properties:
 
 * model
+    * definition:
+        * module: The Python module that contains the definition for the model that should be used
+        * name: The Python name that is the model definition
     * hyper_params: The hyper parameters for the model (some are defined as a list to allow
     for a hyper-parameter search during training)
     * source: This parameter is used when the code is run using evaluator.py. It determines
@@ -39,6 +42,9 @@ contains the following configurable properties:
         * "online": Means that the model does not have a .hdf5 file and it will be loaded
         without any predefined weights. 
 * data_loader
+    * definition:
+        * module: The Python module that contains the definition for the data_loader that should be used
+        * name: The Python name that is the data_loader definition
     * hyper_params: The hyper parameters for the data_loader
     * should_preprocess_data: This parameter is only supported using evaluator.py, it is not supported
     for trainer.py. If one wants to pre-process data before using trainer.py, one must use tools/netcdf_crop.py

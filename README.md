@@ -26,24 +26,33 @@ contains the following configurable properties:
 * model
     * hyper_params: The hyper parameters for the model (some are defined as a list to allow
     for a hyper-parameter search during training)
-    * source: This parameter is used during evaluation and determines how to load the trained model. Either:
+    * source: This parameter is used when the code is run using evaluator.py. It determines
+    how to load the trained model. It's value should be one of the following:
         * "" (defaults loading model during evaluation to ../model/best_model.hdf5)
         * Absolute path to the hdf5 file 
-        * "online": Means that the model does not have a hdf5 file and it will be loaded without any
-        predefined weights. 
+        * "online": Means that the model does not have a .hdf5 file and it will be loaded
+        without any predefined weights. 
 * data_loader
     * hyper_params: The hyper parameters for the data loader
-    * should_preprocess_data: True if pre-processing should be done right before evaluation.
-    If false, looks into the property preprocessed_data_source.test for where to load prematurely pre-processed data.
-    For background, we usually used our tools/netcdf_crop.py to prematurely pre-process our data and then
-    re-trained on this data to speed up launching experiments.
+    * should_preprocess_data: This parameter is only supported using evaluator.py, it is not supported
+    for trainer.py. If one wants to pre-process data before using trainer.py, one must use tools/netcdf_crop.py
+    manually first and set preprocessed_data_source.training as the value to where the resulting pre-processed
+    files are stored. Likewise, preprocessed_data_source.validation should have the pre-processed NetCDF files
+    which should be used for validation to measure the RMSE of the model during training.
+        * If true and evaluator.py is being used, the NetCDF files referenced in the admin configuration file
+        will be pre-processed using tools/netcdf_crop.py and the result will be stored in
+        preprocessed_data_source.test (see below).
+        * If false and evaluator.py is being used, the folder of preprocessed_data_source.test will be checked
+        for pre-processed NetCDF files to use for validation.
     * preprocessed_data_source:
         * training: Location of prematurely pre-processed training NetCDF files that have been outputted by
         tools/netcdf_crop.py 
         * training: Location of prematurely pre-processed validation NetCDF files that have been outputted by
         tools/netcdf_crop.py 
         * test: Location of prematurely pre-processed test NetCDF files that have been outputted by
-        tools/netcdf_crop.py.
+        tools/netcdf_crop.py. If should_preprocess_data was set to true and if using evaluator.py, this is both the
+        location where we will place pre-processed data outputted by tools/netcdf_crop.py (which uses the dataframe
+        in the admin file as an input) and where our data loaders will read the data from during prediction time.
 * trainer 
     * hyper_params: We have defined that the following trainer hyper parameters are required by our trainer:
         * lr_rate: The learning rate

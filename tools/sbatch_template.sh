@@ -3,7 +3,7 @@
 #SBATCH --gres=gpu:k80:1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10000M
-#SBATCH --reservation=IFT6759_2020-01-10
+# -SBATCH --reservation=IFT6759_2020-01-10
 
 # Summary:
 #   A template for launching a batch job to execute code from
@@ -33,6 +33,6 @@ module load hdf5-mpi/1.10.3
 source $SLURM_TMPDIR/venv/bin/activate
 
 python trainer.py \
-  --admin_cfg_path configs/admin/dummy_train_cfg.json \
-  --user_cfg_path configs/user/ineichen_clear_sky_v1.json \
+  --admin_cfg_path configs/admin/daily_daytime_01_train.json \
+  --user_cfg_path configs/user/cnn_image_daily_daytime_v2_pretrained.json \
   --tensorboard_tracking_folder /project/cq-training-1/project1/teams/team03/tensorboard/$USER

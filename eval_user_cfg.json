@@ -6,9 +6,7 @@
     },
     "hyper_params": {
       "dropout": [
-        0.15,
-        0.20,
-        0.3
+        0.20
       ],
       "nb_metadata": 8
     },
@@ -16,7 +14,7 @@
   },
   "data_loader": {
     "definition": {
-      "module": "libs.data_loaders.images",
+      "module": "libs.data_loaders.images_cache",
       "name": "data_loader_images_multimodal"
     },
     "hyper_params": {
@@ -24,23 +22,23 @@
       "preprocessed_data_source": {
         "training": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/training",
         "validation": "/project/cq-training-1/project1/teams/team03/data/daily_daytime_01/validation",
-        "test": "/project/cq-training-1/project1/teams/team03/data/test_tmp"
+        "test": "/project/cq-training-1/project1/teams/team03/data/bootstrap_tmp"
       }
     }
   },
   "trainer": {
     "hyper_params": {
       "lr_rate": [
-        6e-3
+        3e-4
       ],
       "epochs": [
-        200
+        100
       ],
       "batch_size": [
         64
       ],
       "patience": [
-        20
+        10
       ]
     }
   }
